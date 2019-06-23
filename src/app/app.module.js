@@ -15,6 +15,7 @@ var app_routing_1 = require("./app.routing");
 var _helpers_1 = require("./_helpers");
 var home_1 = require("./home");
 var login_1 = require("./login");
+var register_1 = require("./register");
 var AppModule = /** @class */ (function () {
     function AppModule() {
     }
@@ -29,11 +30,14 @@ var AppModule = /** @class */ (function () {
             declarations: [
                 app_component_1.AppComponent,
                 home_1.HomeComponent,
-                login_1.LoginComponent
+                login_1.LoginComponent,
+                register_1.RegisterComponent
             ],
             providers: [
                 { provide: http_1.HTTP_INTERCEPTORS, useClass: _helpers_1.JwtInterceptor, multi: true },
-                { provide: http_1.HTTP_INTERCEPTORS, useClass: _helpers_1.ErrorInterceptor, multi: true },
+                { provide: http_1.HTTP_INTERCEPTORS, useClass: _helpers_1.ErrorInterceptor, multi: true }
+                // provider used to create fake backend
+                //fakeBackendProvider
             ],
             bootstrap: [app_component_1.AppComponent]
         })

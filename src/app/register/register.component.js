@@ -14,8 +14,8 @@ var router_1 = require("@angular/router");
 var forms_1 = require("@angular/forms");
 var operators_1 = require("rxjs/operators");
 var _services_1 = require("../_services");
-var LoginComponent = /** @class */ (function () {
-    function LoginComponent(formBuilder, route, router, authenticationService) {
+var RegisterComponent = /** @class */ (function () {
+    function RegisterComponent(formBuilder, route, router, authenticationService) {
         this.formBuilder = formBuilder;
         this.route = route;
         this.router = router;
@@ -24,50 +24,55 @@ var LoginComponent = /** @class */ (function () {
         this.submitted = false;
         this.error = '';
     }
-    LoginComponent.prototype.ngOnInit = function () {
-        this.loginForm = this.formBuilder.group({
-            username: ['', forms_1.Validators.required],
-            password: ['', forms_1.Validators.required]
+    RegisterComponent.prototype.ngOnInit = function () {
+        this.registerForm = this.formBuilder.group({
+            Username: ['', forms_1.Validators.required],
+            Password: ['', forms_1.Validators.required],
+            FirstName: ['', forms_1.Validators.required],
+            LastName: ['', forms_1.Validators.required]
         });
-        // reset login status
+        // login durumunu sıfırlar
         this.authenticationService.logout();
-        // get return url from route parameters or default to '/'
+        // nereye dönülmek isteniyorsa urli alıp oraya döndürülür.
         this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/';
     };
-    Object.defineProperty(LoginComponent.prototype, "f", {
-        // convenience getter for easy access to form fields
-        get: function () { return this.loginForm.controls; },
+    Object.defineProperty(RegisterComponent.prototype, "f", {
+        get: function () { return this.registerForm.controls; },
         enumerable: true,
         configurable: true
     });
-    LoginComponent.prototype.redirectToRegister = function () {
-        this.router.navigate(['/register']);
-    };
-    LoginComponent.prototype.onSubmit = function () {
+    RegisterComponent.prototype.onSubmit = function () {
         var _this = this;
         this.submitted = true;
-        // stop here if form is invalid
-        if (this.loginForm.invalid) {
+        // Boş bırakılan yer hata ver
+        if (this.registerForm.invalid) {
             return;
         }
         this.loading = true;
-        this.authenticationService.login(this.f.username.value, this.f.password.value)
+        this.authenticationService.register(this.f.Username.value, this.f.Password.value, this.f.FirstName.value, this.f.LastName.value)
             .pipe(operators_1.first())
-            .subscribe(function (data) {
-            _this.router.navigate([_this.returnUrl]);
+            .subscribe(function (result) {
+            if (result.Data == null) {
+                _this.error = result.Message;
+            }
+            else {
+                setTimeout(function () {
+                    _this.router.navigate(['/login']);
+                }, 1000);
+            }
         }, function (error) {
             _this.error = error;
             _this.loading = false;
         });
     };
-    LoginComponent = __decorate([
-        core_1.Component({ templateUrl: 'login.component.html' }),
+    RegisterComponent = __decorate([
+        core_1.Component({ templateUrl: 'register.component.html' }),
         __metadata("design:paramtypes", [forms_1.FormBuilder,
             router_1.ActivatedRoute,
             router_1.Router,
             _services_1.AuthenticationService])
-    ], LoginComponent);
-    return LoginComponent;
+    ], RegisterComponent);
+    return RegisterComponent;
 }());
-exports.LoginComponent = LoginComponent;
-//# sourceMappingURL=login.component.js.map
+exports.RegisterComponent = RegisterComponent;
+//# sourceMappingURL=register.component.js.map

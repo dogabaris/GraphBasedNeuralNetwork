@@ -24,9 +24,21 @@ namespace WebApi.Controllers
             var user = _userService.Authenticate(userParam.Username, userParam.Password);
 
             if (user == null)
-                return BadRequest(new { message = "Username or password is incorrect" });
+                return BadRequest(new { message = "Kullanıcı adı ya da parola hatalı!" });
 
             return Ok(user);
+        }
+
+        [AllowAnonymous]
+        [HttpPost("register")]
+        public IActionResult Register([FromBody]User userParam)
+        {
+            var result = _userService.Register(userParam.Username, userParam.Password, userParam.FirstName, userParam.LastName);
+
+            if (result.Data == null)
+                return BadRequest(result);
+
+            return Ok(result);
         }
 
         [HttpGet]

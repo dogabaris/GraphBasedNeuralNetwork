@@ -27,6 +27,18 @@ var AuthenticationService = /** @class */ (function () {
             return user;
         }));
     };
+    AuthenticationService.prototype.register = function (username, password, firstname, lastname) {
+        return this.http.post(config.apiUrl + "/users/register", { username: username, password: password, firstname: firstname, lastname: lastname })
+            .pipe(operators_1.map(function (result) {
+            console.log("Result: ", result);
+            // login successful if there's a jwt token in the response
+            //if (user && user.token) {
+            //  // store user details and jwt token in local storage to keep user logged in between page refreshes
+            //  localStorage.setItem('currentUser', JSON.stringify(user));
+            //}
+            return result;
+        }));
+    };
     AuthenticationService.prototype.logout = function () {
         // remove user from local storage to log user out
         localStorage.removeItem('currentUser');

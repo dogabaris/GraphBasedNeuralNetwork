@@ -18,12 +18,14 @@ namespace WebApi.Data
 
             var users = new User[]
             {
-                new User{FirstName = "test",LastName = "test",Password = "test", Username = "test"},
+                new User{FirstName = "test", LastName = "test", Password = "test", Username = "test"},
             };
+
             foreach (User s in users)
             {
                 context.Users.Add(s);
             }
+
             context.SaveChanges();
         }
     }
