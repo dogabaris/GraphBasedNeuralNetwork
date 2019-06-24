@@ -10,14 +10,24 @@ module.exports = {
         use: ['ts-loader', 'angular2-template-loader'],
         exclude: /node_modules/
       },
-      {
-        test: /\.(html|css)$/,
-        loader: 'raw-loader'
+      { //this rule will only be used for any vendors
+        test: /\.css$/,
+        loaders: ['style-loader', 'css-loader'],
+        include: [/node_modules/]
       },
+      {
+        test: /\.css$/,
+        loaders: ['to-string-loader', 'css-loader'],
+        exclude: [/node_modules/] //add this line so we ignore css coming from node_modules
+      },
+      {
+        test: /\.(html)$/,
+        loader: 'raw-loader'
+      }
     ]
   },
   resolve: {
-    extensions: ['.ts', '.js']
+    extensions: ['.ts', '.js', '.jsx', '.css']
   },
   plugins: [
     new HtmlWebpackPlugin({

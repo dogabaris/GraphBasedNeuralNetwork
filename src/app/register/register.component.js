@@ -23,6 +23,7 @@ var RegisterComponent = /** @class */ (function () {
         this.loading = false;
         this.submitted = false;
         this.error = '';
+        this.info = '';
     }
     RegisterComponent.prototype.ngOnInit = function () {
         this.registerForm = this.formBuilder.group({
@@ -52,13 +53,15 @@ var RegisterComponent = /** @class */ (function () {
         this.authenticationService.register(this.f.Username.value, this.f.Password.value, this.f.FirstName.value, this.f.LastName.value)
             .pipe(operators_1.first())
             .subscribe(function (result) {
-            if (result.Data == null) {
-                _this.error = result.Message;
+            if (result.data == null) {
+                _this.error = result.message;
             }
             else {
+                _this.info = result.message;
+                _this.error = '';
                 setTimeout(function () {
                     _this.router.navigate(['/login']);
-                }, 1000);
+                }, 500);
             }
         }, function (error) {
             _this.error = error;
