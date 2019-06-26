@@ -2,6 +2,8 @@
 import { BrowserModule } from '@angular/platform-browser';
 import { ReactiveFormsModule } from '@angular/forms';
 import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { MatToolbarModule, MatIconModule, MatSidenavModule, MatListModule, MatButtonModule } from '@angular/material';
 
 // used to create fake backend
 import { fakeBackendProvider } from './_helpers';
@@ -19,7 +21,13 @@ import { RegisterComponent } from './register';
     BrowserModule,
     ReactiveFormsModule,
     HttpClientModule,
-    routing
+    routing,
+    BrowserAnimationsModule,
+    MatToolbarModule,
+    MatSidenavModule,
+    MatListModule,
+    MatButtonModule,
+    MatIconModule
   ],
   declarations: [
     AppComponent,

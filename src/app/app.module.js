@@ -10,6 +10,8 @@ var core_1 = require("@angular/core");
 var platform_browser_1 = require("@angular/platform-browser");
 var forms_1 = require("@angular/forms");
 var http_1 = require("@angular/common/http");
+var animations_1 = require("@angular/platform-browser/animations");
+var material_1 = require("@angular/material");
 var app_component_1 = require("./app.component");
 var app_routing_1 = require("./app.routing");
 var _helpers_1 = require("./_helpers");
@@ -25,7 +27,13 @@ var AppModule = /** @class */ (function () {
                 platform_browser_1.BrowserModule,
                 forms_1.ReactiveFormsModule,
                 http_1.HttpClientModule,
-                app_routing_1.routing
+                app_routing_1.routing,
+                animations_1.BrowserAnimationsModule,
+                material_1.MatToolbarModule,
+                material_1.MatSidenavModule,
+                material_1.MatListModule,
+                material_1.MatButtonModule,
+                material_1.MatIconModule
             ],
             declarations: [
                 app_component_1.AppComponent,

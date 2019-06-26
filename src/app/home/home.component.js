@@ -24,7 +24,9 @@ var HomeComponent = /** @class */ (function () {
         });
     };
     HomeComponent = __decorate([
-        core_1.Component({ templateUrl: 'home.component.html' }),
+        core_1.Component({
+            templateUrl: 'home.component.html'
+        }),
         __metadata("design:paramtypes", [_services_1.UserService])
     ], HomeComponent);
     return HomeComponent;

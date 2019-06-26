@@ -13,7 +13,9 @@ var AppComponent = /** @class */ (function () {
     AppComponent = __decorate([
         core_1.Component({
             selector: 'app',
-            templateUrl: 'app.component.html'
+            styleUrls: ['./app.component.css'],
+            templateUrl: 'app.component.html',
+            encapsulation: core_1.ViewEncapsulation.None
         })
     ], AppComponent);
     return AppComponent;

@@ -1,3 +1,7 @@
-﻿.jumbotron {
-    --background-color: grey !important;
+﻿@import "../../node_modules/@angular/material/prebuilt-themes/deeppurple-amber.css";
+
+.center {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
 }

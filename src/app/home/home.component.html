@@ -1,9 +1,26 @@
-﻿<h1>Anasayfa</h1>
-<p>Giriş Yapıldı</p>
-<div>
-    Kullanıcılar:
+﻿<mat-sidenav-container>
+  <mat-sidenav #sidenav mode="side" [(opened)]="opened">
+    <mat-nav-list>
+      <mat-list-item role="listitem">Menü</mat-list-item>
+      <a mat-list-item [routerLink]="['/sec1']"> Seçenek 1 </a>
+      <a mat-list-item [routerLink]="['/sec2']"> Seçenek 2 </a>
+      <a mat-list-item [routerLink]="['/sec3']"> Seçenek 3 </a>
+      <a mat-list-item [routerLink]="['/sec4']"> Seçenek 4 </a>
+      <a mat-list-item [routerLink]="['/sec5']"> Seçenek 5 </a>
+      <a mat-list-item [routerLink]="['/sec6']"> Seçenek 6 </a>
+
+    </mat-nav-list>
+  </mat-sidenav>
+
+  <mat-sidenav-content>
+    <div style="height: 88vh;">
+    <button mat-button (click)="sidenav.toggle()"><mat-icon aria-hidden="false" aria-label="Menu">subject</mat-icon></button>
+
+    <p>Kullanıcılar:</p>
     <ul>
-        <li *ngFor="let user of users">{{user.firstName}} {{user.lastName}}</li>
+      <li *ngFor="let user of users">{{user.firstName}} {{user.lastName}}</li>
     </ul>
-</div>
-<p><a [routerLink]="['/login']">Çıkış Yap</a></p>
+    <p><a [routerLink]="['/login']">Çıkış Yap</a></p>
+    </div>
+  </mat-sidenav-content>
+</mat-sidenav-container>
