@@ -7,6 +7,10 @@ namespace WebApi.Entities
         public string LastName { get; set; }
         public string Username { get; set; }
         public string Password { get; set; }
+        //fk
+        public int WorkspaceId { get; set; }
+        //navigation
+        public Workspace Workspace { get; set; }
         public string Token { get; set; }
     }
 }

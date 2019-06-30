@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using WebApi.Entities;
+using WebApi.Entities.AppModels;
 
 namespace WebApi.Services
 {

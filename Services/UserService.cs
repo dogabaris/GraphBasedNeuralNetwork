@@ -7,30 +7,26 @@ using System.Text;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using WebApi.Entities;
+using WebApi.Entities.AppModels;
 using WebApi.Helpers;
 
 namespace WebApi.Services
 {
     public class UserService : IUserService
     {
-        //private List<User> _users = new List<User>
-        //{ 
-        //    new User { Id = 1, FirstName = "Test", LastName = "User", Username = "test", Password = "test" } 
-        //};
-
         private readonly AppSettings _appSettings;
-        private UserContext _userContext;
+        private AppDbContext _dbContext;
 
-        public UserService(IOptions<AppSettings> appSettings, UserContext userContext)
+        public UserService(IOptions<AppSettings> appSettings, AppDbContext dbContext)
         {
-            _userContext = userContext;
+            _dbContext = dbContext;
             _appSettings = appSettings.Value;
         }
 
         public User Authenticate(string username, string password)
         {
             //var user = _users.SingleOrDefault(x => x.Username == username && x.Password == password);
-            var user = _userContext.Users.SingleOrDefault(x => x.Username == username && x.Password == password);
+            var user = _dbContext.User.SingleOrDefault(x => x.Username == username && x.Password == password);
 
             // Kullanýcý bulunamadýðýnda null döndürülüyor.
             if (user == null)
@@ -59,12 +55,7 @@ namespace WebApi.Services
 
         public IEnumerable<User> GetAll()
         {
-            // return users without passwords
-            //return _users.Select(x => {
-            //    x.Password = null;
-            //    return x;
-            //});
-            var list = _userContext.Users.ToList().Select(x => {
+            var list = _dbContext.User.ToList().Select(x => {
                 x.Password = null;
                 return x;
             });
@@ -74,7 +65,7 @@ namespace WebApi.Services
 
         public Result<User> Register(string username, string password, string firstname, string lastname)
         {
-            var isAlreadyExist = _userContext.Users.FirstOrDefault(x => x.Username == username);
+            var isAlreadyExist = _dbContext.User.FirstOrDefault(x => x.Username == username);
             if (isAlreadyExist != null)
                 return new Result<User>
                 {
@@ -83,7 +74,7 @@ namespace WebApi.Services
                     Data = null
                 };
 
-            var addedUser = _userContext.Users.Add(new User
+            var addedUser = _dbContext.User.Add(new User
             {
                 Username = username,
                 Password = password,
@@ -91,7 +82,7 @@ namespace WebApi.Services
                 LastName = lastname,
             });
 
-            _userContext.SaveChanges();
+            _dbContext.SaveChanges();
 
             return new Result<User>
             {

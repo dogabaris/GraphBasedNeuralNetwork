@@ -1,4 +1,4 @@
-﻿namespace WebApi.Entities
+﻿namespace WebApi.Entities.AppModels
 {
     public class Result<T>
     {

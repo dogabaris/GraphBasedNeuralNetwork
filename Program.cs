@@ -1,11 +1,10 @@
 ﻿using System;
-using System.IO;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using WebApi.Data;
-using WebApi.Entities;
+using WebApi.Entities.AppModels;
 
 namespace WebApi
 {
@@ -20,13 +19,13 @@ namespace WebApi
                 var services = scope.ServiceProvider;
                 try
                 {
-                    var context = services.GetRequiredService<UserContext>();
-                    DbInitializer.Initialize(context);
+                    var dbContext = services.GetRequiredService<AppDbContext>();
+                    DbInitializer.Initialize(dbContext);
                 }
                 catch (Exception ex)
                 {
                     var logger = services.GetRequiredService<ILogger<Program>>();
-                    logger.LogError(ex, "An error occurred while seeding the database.");
+                    logger.LogError(ex, "Database bağlantısında problem oldu.");
                 }
             }
 
