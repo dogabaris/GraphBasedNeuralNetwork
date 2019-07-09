@@ -1,16 +1,34 @@
-﻿<!DOCTYPE html>
+﻿<!--<!DOCTYPE html>-->
 <html>
 <head>
   <base href="/" />
   <title>Graf Tabanlı Yapay Sinir Ağı</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
-  <link href="//netdna.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" rel="stylesheet" />
+  <!--Arrows Import-->
+  <script type="text/javascript" src="/Content/arrows-gh-pages/lib/d3.v3.js" charset="UTF-8"></script>
+  <script type="text/javascript" src="/Content/arrows-gh-pages/graph-diagram.js"></script>
+
+  <link rel="stylesheet" href="/Content/arrows-gh-pages//lib/bootstrap.css" type="text/css">
+  <link rel="stylesheet" href="/Content/arrows-gh-pages//style/graph-diagram.css" type="text/css">
+  <link rel="stylesheet" class="graph-style" href="/Content/arrows-gh-pages/style/graph-style-chunky.css" type="text/css">
+  <link rel="stylesheet" class="graph-style" href="/Content/arrows-gh-pages/style/graph-style-bootstrap.css" type="text/css">
+  <link rel="stylesheet" href="/Content/arrows-gh-pages/style/graph-editor.css" type="text/css">
+  <script type="text/javascript" src="/Content/arrows-gh-pages/graph-editor.js"></script>
+  <script type="text/javascript" src="/Content/arrows-gh-pages/cypher.js"></script>
+
+  <!-- Others -->
+  <!--<link href="//netdna.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" rel="stylesheet" />-->
   <link href="/node_modules/@angular/material/prebuilt-themes/indigo-pink.css" rel="stylesheet" />
   <link href="//fonts.googleapis.com/icon?family=Material+Icons&display=block" rel="stylesheet">
 
 </head>
 <body>
-    <app>Loading...</app>
+  <app>Loading...</app>
+
+  <script type="text/javascript">
+    d3.selectAll("figure.graph-diagram")
+      .call(gd.figure());
+  </script>
 </body>
 </html>

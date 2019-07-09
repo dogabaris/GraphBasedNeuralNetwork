@@ -1,26 +1,132 @@
-﻿<mat-sidenav-container>
-  <mat-sidenav #sidenav mode="side" [(opened)]="opened">
-    <mat-nav-list>
-      <mat-list-item role="listitem">Menü</mat-list-item>
-      <a mat-list-item [routerLink]="['/sec1']"> Seçenek 1 </a>
-      <a mat-list-item [routerLink]="['/sec2']"> Seçenek 2 </a>
-      <a mat-list-item [routerLink]="['/sec3']"> Seçenek 3 </a>
-      <a mat-list-item [routerLink]="['/sec4']"> Seçenek 4 </a>
-      <a mat-list-item [routerLink]="['/sec5']"> Seçenek 5 </a>
-      <a mat-list-item [routerLink]="['/sec6']"> Seçenek 6 </a>
+﻿
+<div class="col-xs-12 col-sm-8">
 
-    </mat-nav-list>
-  </mat-sidenav>
+  <div class="jumbotron">
 
-  <mat-sidenav-content>
-    <div style="height: 88vh;">
-    <button mat-button (click)="sidenav.toggle()"><mat-icon aria-hidden="false" aria-label="Menu">subject</mat-icon></button>
+    <ul class="nav nav-list bs-docs-sidenav affix form-inline well" style="z-index: 100;">
+      <li>Menü</li>
+      <br />
+      <li><a href=""><i class="icon-chevron-right"></i> Seçenek 1 </a></li>
+      <li><a href=""><i class="icon-chevron-right"></i> Seçenek 2 </a></li>
+      <li><a [routerLink]="['/login']"><i class="icon-chevron-right"></i> Çıkış Yap</a></li>
+</ul>
 
-    <p>Kullanıcılar:</p>
-    <ul>
-      <li *ngFor="let user of users">{{user.firstName}} {{user.lastName}}</li>
-    </ul>
-    <p><a [routerLink]="['/login']">Çıkış Yap</a></p>
+    <div class="tools form-inline well">
+      <button class="btn" id="add_node_button"><i class="icon-plus"></i> Node</button>
+      <button class="btn" id="exportCypherButton">Export Cypher</button>
+      <button class="btn" id="exportMarkupButton">Export Markup</button>
+      <a class="btn" id="downloadSvgButton" download="arrows.svg">Download SVG</a>
+      <button class="btn" id="chooseStyleButton">Choose Style</button>
+      <label for="internalScale">Internal Scale</label>
+      <input id="internalScale" type="range" min="0.1" max="5" value="1" step="0.01">
     </div>
-  </mat-sidenav-content>
-</mat-sidenav-container>
+
+    <!--<input id="node_name_editor" class="editor-field">-->
+
+    <div class="modal hide export-markup">
+      <div class="modal-header">
+        <h3>Edit/Export markup</h3>
+      </div>
+      <div class="modal-body">
+        <textarea class="code">Some text</textarea>
+      </div>
+      <div class="modal-footer">
+        <a href="#" class="btn cancel">Cancel</a>
+        <a href="#" class="btn btn-primary" id="save_markup">Save</a>
+      </div>
+    </div>
+    <div class="modal hide choose-style">
+      <div class="modal-header">
+        <h3>Choose Style</h3>
+      </div>
+      <div class="modal-body">
+        <label class="radio">
+          <input type="radio" name="styleChoice" value="graph-style-chunky.css" checked>
+          Chunky
+        </label>
+        <label class="radio">
+          <input type="radio" name="styleChoice" value="graph-style-bootstrap.css">
+          Bootstrap
+        </label>
+      </div>
+      <div class="modal-footer">
+        <a href="#" class="btn cancel">Cancel</a>
+        <a href="#" class="btn btn-primary" id="saveStyle">Save</a>
+      </div>
+    </div>
+    <div class="modal hide pop-up-editor node" tabindex="-1">
+      <div class="modal-header">
+        <h3>Edit Node</h3>
+      </div>
+      <div class="top-right-btn-bar">
+        <button class="btn btn-danger" id="edit_node_delete">Delete</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-horizontal">
+          <div class="control-group">
+            <label class="control-label" for="node_caption">Caption</label>
+            <div class="controls">
+              <input id="node_caption" type="text" value="A">
+            </div>
+          </div>
+          <div class="control-group">
+            <label class="control-label" for="node_properties">Properties</label>
+            <div class="controls">
+              <textarea id="node_properties" rows="6"></textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <a href="#" class="btn cancel">Cancel</a>
+        <a href="#" class="btn btn-primary" id="edit_node_save">Save</a>
+      </div>
+    </div>
+    <div class="modal hide pop-up-editor relationship" tabindex="-1">
+      <div class="modal-header">
+        <h3>Edit Relationship</h3>
+      </div>
+      <div class="top-right-btn-bar">
+        <button class="btn" id="edit_relationship_reverse">Reverse</button>
+        <button class="btn btn-danger" id="edit_relationship_delete">Delete</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-horizontal">
+          <div class="control-group">
+            <label class="control-label" for="relationship_type">Type</label>
+            <div class="controls">
+              <input id="relationship_type" type="text" value="R">
+            </div>
+          </div>
+          <div class="control-group">
+            <label class="control-label" for="relationship_properties">Properties</label>
+            <div class="controls">
+              <textarea id="relationship_properties" rows="6"></textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <a href="#" class="btn cancel">Cancel</a>
+        <a href="#" class="btn btn-primary" id="edit_relationship_save">Save</a>
+      </div>
+    </div>
+    <div class="modal hide export-cypher">
+      <div class="modal-header">
+        <h3>Export as Cypher</h3>
+      </div>
+      <div class="modal-body">
+        <textarea class="code">Some Text</textarea>
+      </div>
+      <div class="modal-footer">
+        <a href="#" class="btn cancel btn-primary">Close</a>
+        <a href="#" target="_blank" class="btn" id="open_console">Open in Console</a>
+      </div>
+    </div>
+    
+    <div class="col-xs-12">
+      <div id="canvas"></div>
+    </div>
+
+  </div>
+</div>
