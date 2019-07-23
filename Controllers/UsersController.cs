@@ -2,19 +2,24 @@
 using Microsoft.AspNetCore.Authorization;
 using WebApi.Services;
 using WebApi.Entities;
+using Neo4j.Driver.V1;
+using System;
+using ServiceStack.Text;
 
 namespace WebApi.Controllers
 {
-  [Authorize]
+    [Authorize]
     [ApiController]
     [Route("[controller]")]
     public class UsersController : ControllerBase
     {
         private IUserService _userService;
+        private IDriver _driver;
 
-        public UsersController(IUserService userService)
+        public UsersController(IUserService userService, IDriver driver)
         {
             _userService = userService;
+            _driver = driver;
         }
 
         [AllowAnonymous]
@@ -42,9 +47,21 @@ namespace WebApi.Controllers
         }
 
         [HttpGet]
-        public IActionResult GetAll()
+        public async System.Threading.Tasks.Task<IActionResult> GetAllAsync()
         {
-            var users =  _userService.GetAll();
+            var users = _userService.GetAll();
+            using (var session = _driver.Session())
+            {
+                var cursor = await session.RunAsync(@"
+                  MATCH (n)
+                RETURN n;");
+
+                foreach (var record in await cursor.ToListAsync())
+                {
+                    var output = record.Values.Dump();
+                    Console.WriteLine(output);
+                }
+            }
             return Ok(users);
         }
     }
