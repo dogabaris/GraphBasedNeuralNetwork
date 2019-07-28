@@ -13,7 +13,7 @@
 
     <div class="tools form-inline well">
       <button class="btn" id="add_node_button"><i class="icon-plus"></i> Node</button>
-      <button class="btn" id="exportCypherButton">Export Cypher</button>
+      <button class="btn" id="exportCypherButton" (click)="exportCypher()">Export Cypher</button>
       <button class="btn" id="exportMarkupButton">Export Markup</button>
       <a class="btn" id="downloadSvgButton" download="arrows.svg">Download SVG</a>
       <button class="btn" id="chooseStyleButton">Choose Style</button>
@@ -111,12 +111,13 @@
         <a href="#" class="btn btn-primary" id="edit_relationship_save">Save</a>
       </div>
     </div>
-    <div class="modal hide export-cypher">
+    <div class="modal hide export-cypher" #exportCypherEl id="exportCypherEl">
       <div class="modal-header">
         <h3>Export as Cypher</h3>
       </div>
       <div class="modal-body">
-        <textarea class="code">Some Text</textarea>
+        <textarea class="code" type="text" id="exportCypherTextId" (input)="exportCypherModel = $event.target.value" name="exportCypherModel" [(ngModel)]="exportCypherModel">{{exportCypherModel}}</textarea>
+        {{exportCypherModel}}
       </div>
       <div class="modal-footer">
         <a href="#" class="btn cancel btn-primary">Close</a>

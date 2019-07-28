@@ -5,6 +5,11 @@ using WebApi.Entities;
 using Neo4j.Driver.V1;
 using System;
 using ServiceStack.Text;
+using WebApi.Entities.Neo4j;
+using Neo4jMapper;
+using Newtonsoft.Json;
+using System.IO;
+using System.Text;
 
 namespace WebApi.Controllers
 {
@@ -46,22 +51,45 @@ namespace WebApi.Controllers
             return Ok(result);
         }
 
+        [HttpPost("createmodel")]
+        public async System.Threading.Tasks.Task<IActionResult> CreateModelAsync() //[FromBody] string cypherQuery
+        {
+            using (StreamReader reader = new StreamReader(Request.Body, Encoding.UTF8))
+            {
+                var cypherQuery = await reader.ReadToEndAsync();
+
+                var resultJson = "";
+
+                using (var session = _driver.Session())
+                {
+                    try
+                    {
+                        var cursor = await session.RunAsync(cypherQuery);
+                        //TODO: Return node or model as entity
+                        var nodes = await cursor.MapAsync<Node>();
+                        resultJson = JsonConvert.SerializeObject(nodes);
+                    }
+                    catch (Exception ex)
+                    {
+                        return BadRequest(ex);
+                    }
+                }
+
+                if (string.IsNullOrWhiteSpace(resultJson))
+                    return BadRequest(resultJson);
+
+                return Ok(resultJson);
+            }
+        }
+
         [HttpGet]
         public async System.Threading.Tasks.Task<IActionResult> GetAllAsync()
         {
             var users = _userService.GetAll();
-            using (var session = _driver.Session())
-            {
-                var cursor = await session.RunAsync(@"
-                  MATCH (n)
-                RETURN n;");
 
-                foreach (var record in await cursor.ToListAsync())
-                {
-                    var output = record.Values.Dump();
-                    Console.WriteLine(output);
-                }
-            }
+            if (users == null)
+                return BadRequest(users);
+
             return Ok(users);
         }
     }
