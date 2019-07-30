@@ -14,17 +14,9 @@ export class UserService {
     return this.http.get<User[]>(`${config.apiUrl}/users`);
   }
 
-  exportCypher(cypherQuery: any) {
+  createModel(cypherQuery: any) {
     console.log("exportCypher fired");
-    return this.http.post(`${config.apiUrl}/users/createmodel`, cypherQuery)
-      .subscribe(
-        res => {
-          console.log(res);
-        },
-        err => {
-          console.log("Error occured");
-        }
-      );
+    return this.http.post(`${config.apiUrl}/users/createmodel`, cypherQuery);
   }
 
   handleError(error: HttpErrorResponse) {

@@ -134,7 +134,7 @@ window.onload = function()
         diagram.scaling(gd.scaling.growButDoNotShrink);
         draw();
     }
-
+    
     function dragRing()
     {
         var node = this.__data__.model;

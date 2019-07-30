@@ -1,9 +1,13 @@
-﻿import { Component, OnInit, ChangeDetectionStrategy, ElementRef, ViewChild, InjectionToken, Inject } from '@angular/core';
+﻿import { Component, OnInit, ChangeDetectionStrategy, ElementRef, ViewChild, InjectionToken, Inject, Renderer, ChangeDetectorRef } from '@angular/core';
 import { first } from 'rxjs/operators';
-
+import { ToastrService } from 'ngx-toastr';
 import { User } from '../_models';
 import { UserService } from '../_services';
 import { DOCUMENT } from '@angular/common';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+
+declare var NeoVis: any;
+
 @Component({
   templateUrl: 'home.component.html'
 })
@@ -11,15 +15,77 @@ export class HomeComponent implements OnInit {
   users: User[] = [];
   exportCypherModel: string;
   @ViewChild('exportCypherEl', null) exportCypherEl: ElementRef;
-  constructor(private userService: UserService, @Inject(DOCUMENT) private document: Document) { }
+
+  emptyObj1:any;
+  emptyObj:any;
+  info:any;
+  neo4jframe:any;
+  viz:any;
+  interval: any;
+
+  constructor(private userService: UserService, @Inject(DOCUMENT) private document: Document, private toastr: ToastrService
+    , private cdRef: ChangeDetectorRef) { }
 
   ngOnInit() {
     this.userService.getAll().pipe(first()).subscribe(users => {
       this.users = users;
     });
+
+    //this.viewNodesStart();
+
+    const url = 'bolt://localhost:7687';
+    const username = 'neo4j';
+    const password = 'password';
+    const encrypted = true;
+
+    var config = {
+      container_id: "viz",
+      server_url: "bolt://localhost:7687",
+      server_user: "neo4j",
+      server_password: "password",
+      labels: {
+        "input": {},
+        "hidden": {},
+        "output": {}
+      },
+      relationships: {
+        "related": {}
+      },
+
+      initial_cypher: "start n=node(*), r=relationship(*) match(n) where(n.workspace = '1') return n,r",
+      arrows: true,
+      hierarchical_layout: true,
+      hierarchical_sort_method: "directed",
+    };
+    this.viz = new NeoVis.default(config);
+
+    this.viz.render();
+    console.log(this.viz);
+
+    this.interval = setInterval(() => {
+      this.refreshViewModel();
+    }, 1000);
   }
 
-  exportCypher() {
+  refreshViewModel() {
+    this.viz.render();
+  }
+
+  cancelRefreshOfViewModel() {
+    if (this.interval) {
+      clearInterval(this.interval);
+    }
+  }
+
+  showSuccess(msg: any) {
+    this.toastr.success(msg);
+  }
+
+  showError(msg: any) {
+    this.toastr.success(msg);
+  }
+
+  createModel() {
     setTimeout(() => {
       if (this.exportCypherEl && this.exportCypherEl.nativeElement.classList.contains('hide')) {
         console.log("exportCypherElement is hided");
@@ -28,8 +94,24 @@ export class HomeComponent implements OnInit {
         console.log("exportCypherModel: ", mdl.value);
         this.exportCypherModel = mdl.value;
 
-        this.userService.exportCypher(this.exportCypherModel);
+        this.userService.createModel(this.exportCypherModel).subscribe(
+          res => {
+            console.log(res);
+            this.showSuccess("Model başarıyla oluşturuldu!");
+            this.exportCypherEl.nativeElement.classList.add("hide");
+          },
+          err => {
+            console.log("Error occured");
+            this.showError("Model oluşturulamadı!");
+          }
+        );
       }
     }, 300);
+  }
+  openNewModelPage() {
+    localStorage.removeItem('graph-diagram-markup');
+    location.reload();
+    //this.cdRef.detectChanges();
+    //localStorage.clear();
   }
 }
