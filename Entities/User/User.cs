@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace WebApi.Entities
 {
     public class User
@@ -7,10 +9,7 @@ namespace WebApi.Entities
         public string LastName { get; set; }
         public string Username { get; set; }
         public string Password { get; set; }
-        //fk
-        public int WorkspaceId { get; set; }
-        //navigation
-        public Workspace Workspace { get; set; }
+        public ICollection<UserWorkspace> UserWorkspaces { get; set; }
         public string Token { get; set; }
     }
 }

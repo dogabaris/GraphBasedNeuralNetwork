@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
@@ -37,7 +38,7 @@ namespace WebApi.Services
             var key = Encoding.ASCII.GetBytes(_appSettings.Secret);
             var tokenDescriptor = new SecurityTokenDescriptor
             {
-                Subject = new ClaimsIdentity(new Claim[] 
+                Subject = new ClaimsIdentity(new Claim[]
                 {
                     new Claim(ClaimTypes.Name, user.Id.ToString())
                 }),
@@ -55,12 +56,19 @@ namespace WebApi.Services
 
         public IEnumerable<User> GetAll()
         {
-            var list = _dbContext.User.ToList().Select(x => {
+            var list = _dbContext.User.ToList().Select(x =>
+            {
                 x.Password = null;
                 return x;
             });
 
             return list;
+        }
+
+        public IEnumerable<Workspace> GetAllWorkspaces(int userId)
+        {
+            var workspaces = _dbContext.UserWorkspace.Where(u => u.UserId == userId).Select(uw => uw.Workspace).ToList();
+            return workspaces;
         }
 
         public Result<User> Register(string username, string password, string firstname, string lastname)
@@ -90,6 +98,33 @@ namespace WebApi.Services
                 Message = "Kayýt baþarýlý!",
                 Data = addedUser.Entity
             };
+        }
+
+        public Result<Workspace> CreateModel(string name, User user)
+        {
+            if (_dbContext.Workspace.Any(q => q.Name == name))
+            {
+                return new Result<Workspace> { Data = new Workspace(), Message = "Bu model zaten bulunmaktadýr! Baþka bir isim belirleyin.", Status = "500" };
+            }
+            else
+            {
+                var workspace = new Workspace { Name = name };
+                var resWorkspace = _dbContext.Workspace.Add(workspace).Entity;
+                _dbContext.SaveChanges();
+
+                var userWorkspace = new UserWorkspace { UserId = user.Id, WorkspaceId = resWorkspace.Id };
+                var resUserWWorkspace = _dbContext.UserWorkspace.Add(userWorkspace).Entity;
+                try
+                {
+                    _dbContext.SaveChanges();
+                }
+                catch (Exception ex)
+                {
+                    Console.Write(ex);
+                }
+
+                return new Result<Workspace> { Data = resWorkspace, Message = "Model baþarýyla oluþturuldu!", Status = "200" };
+            }
         }
     }
 }

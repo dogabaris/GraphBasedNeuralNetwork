@@ -4,10 +4,13 @@ MATCH (n)
  MATCH (n)
 DETACH DELETE n;
 
-
 start n=node(*)
 match (n)
 where (n.workspace = '1')
 return n
 
 start n=node(*), r=relationship(*) match(n) where(n.workspace = '2') return n,r
+
+MATCH (n)
+WHERE (n.workspace = '3')
+DETACH DELETE n;

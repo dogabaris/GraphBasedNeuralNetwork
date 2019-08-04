@@ -1,22 +1,37 @@
 ﻿import { Injectable } from '@angular/core';
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
 
 import { User } from '../_models';
 import { catchError, tap } from 'rxjs/operators';
 import { throwError } from 'rxjs/internal/observable/throwError';
 import { Observable } from 'rxjs/internal/Observable';
+import { ToastrService } from 'ngx-toastr';
+import { Workspace } from '../_models/workspace';
 
 @Injectable({ providedIn: 'root' })
 export class UserService {
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient, private toastr: ToastrService) { }
 
   getAll() {
     return this.http.get<User[]>(`${config.apiUrl}/users`);
   }
 
+  getAllWorkspaces() {
+    var user = JSON.parse(localStorage.getItem('currentUser'));
+    let params = new HttpParams().set("userId", user.id );
+    return this.http.get<Workspace[]>(`${config.apiUrl}/users/getallworkspaces`, { params: params });
+  }
+
   createModel(cypherQuery: any) {
     console.log("exportCypher fired");
-    return this.http.post(`${config.apiUrl}/users/createmodel`, cypherQuery);
+    var user = JSON.parse(localStorage.getItem('currentUser'));
+    if (user && user.token) {
+      return this.http.post(`${config.apiUrl}/users/createmodel`, { "user": user, "cypherQuery": cypherQuery });
+      
+    }
+    else {
+      this.toastr.error("Giriş yapın!");
+    }
   }
 
   handleError(error: HttpErrorResponse) {

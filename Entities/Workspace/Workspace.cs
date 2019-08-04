@@ -6,7 +6,6 @@ namespace WebApi.Entities
     {
         public int Id { get; set; }
         public string Name { get; set; }
-        //navigation
-        public ICollection<User> Users { get; set; }
+        public ICollection<UserWorkspace> UserWorkspaces { get; set; }
     }
 }

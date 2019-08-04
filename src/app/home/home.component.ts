@@ -5,6 +5,7 @@ import { User } from '../_models';
 import { UserService } from '../_services';
 import { DOCUMENT } from '@angular/common';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { Workspace } from '../_models/workspace';
 
 declare var NeoVis: any;
 
@@ -13,25 +14,41 @@ declare var NeoVis: any;
 })
 export class HomeComponent implements OnInit {
   users: User[] = [];
+  workspaces: any = [];
   exportCypherModel: string;
   @ViewChild('exportCypherEl', null) exportCypherEl: ElementRef;
 
-  emptyObj1:any;
-  emptyObj:any;
-  info:any;
-  neo4jframe:any;
-  viz:any;
+  emptyObj1: any;
+  emptyObj: any;
+  info: any;
+  neo4jframe: any;
+  viz: any;
   interval: any;
 
   constructor(private userService: UserService, @Inject(DOCUMENT) private document: Document, private toastr: ToastrService
     , private cdRef: ChangeDetectorRef) { }
 
   ngOnInit() {
-    this.userService.getAll().pipe(first()).subscribe(users => {
-      this.users = users;
-    });
+    //this.userService.getAll().pipe(first()).subscribe(users => {
+    //  this.users = users;
+    //});
 
-    //this.viewNodesStart();
+    this.userService.getAllWorkspaces().pipe(first()).subscribe(workspaces => {
+      this.workspaces = workspaces;
+    });
+  }
+
+  newModel() {
+    document.getElementById("viz").classList.add("hide");
+    document.getElementById("tools").classList.remove("hide");
+    document.getElementById("canvas").classList.remove("hide");
+    this.cancelRefreshOfViewModel();
+  }
+
+  getModel(modelName: string) {
+    document.getElementById("tools").classList.add("hide");
+    document.getElementById("canvas").classList.add("hide");
+    document.getElementById("viz").classList.remove("hide");
 
     const url = 'bolt://localhost:7687';
     const username = 'neo4j';
@@ -44,17 +61,27 @@ export class HomeComponent implements OnInit {
       server_user: "neo4j",
       server_password: "password",
       labels: {
-        "input": {},
-        "hidden": {},
-        "output": {}
+        "input": {
+          "caption": "workspace"
+        },
+        "hidden": {
+          "caption": "workspace"
+        },
+        "output": {
+          "caption": "workspace"
+        }
       },
       relationships: {
-        "related": {}
+        "related": {
+          "thickness": "weight",
+          "caption": "weight"
+        }
       },
 
-      initial_cypher: "start n=node(*), r=relationship(*) match(n) where(n.workspace = '1') return n,r",
+      initial_cypher: "start n=node(*), r=relationship(*) match(n) where(n.workspace = '" + modelName + "') return n,r",
       arrows: true,
-      hierarchical_layout: true,
+      hierarchical: true,
+      //hierarchical_layout: true,
       hierarchical_sort_method: "directed",
     };
     this.viz = new NeoVis.default(config);
@@ -64,11 +91,13 @@ export class HomeComponent implements OnInit {
 
     this.interval = setInterval(() => {
       this.refreshViewModel();
-    }, 1000);
+    }, 5000);
   }
 
   refreshViewModel() {
-    this.viz.render();
+    this.viz.stabilize();
+    this.viz.reload();
+    //this.viz.render();
   }
 
   cancelRefreshOfViewModel() {
@@ -82,7 +111,7 @@ export class HomeComponent implements OnInit {
   }
 
   showError(msg: any) {
-    this.toastr.success(msg);
+    this.toastr.error(msg);
   }
 
   createModel() {

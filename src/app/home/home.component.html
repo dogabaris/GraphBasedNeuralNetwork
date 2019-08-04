@@ -5,13 +5,13 @@
 
     <ul class="nav nav-list bs-docs-sidenav affix form-inline well" style="z-index: 100;">
       <li>Menü</li>
-      <li><a href="javascript:;" (click)="openNewModelPage()"><i class="icon-chevron-right"></i>Yeni Model Oluştur</a></li>
-      <li>Model List</li>
-      <li><a href="javascript:;" (click)="getModel()"><i class="icon-chevron-right"></i> Temp Model </a></li>
+      <li><a href="javascript:;" (click)="newModel()"><i class="icon-chevron-right"></i>Yeni Model Oluştur</a></li>
+      <li>Workspace Listesi</li>
+      <li *ngFor="let workspace of workspaces; let i = index"><a href="javascript:;" (click)="getModel(workspace.name)"><i class="icon-chevron-right"></i> {{workspace.name}} </a></li>
       <li><a [routerLink]="['/login']"><i class="icon-chevron-right"></i> Çıkış Yap</a></li>
     </ul>
 
-    <div class="tools form-inline well">
+    <div class="tools form-inline well" id="tools">
       <button class="btn" id="add_node_button"><i class="icon-plus"></i> Node Ekle</button>
       <button class="btn" id="exportCypherButton">Cypher Sorgusu</button>
       <button class="btn hide" id="exportMarkupButton">Export Markup</button>
@@ -58,6 +58,7 @@
         <h3>Node Düzenle</h3>
       </div>
       <div class="top-right-btn-bar">
+        Tüm düğüm özelliklerine benzersiz bir 'workspace' tanımı yapılmalıdır.
         <button class="btn btn-danger" id="edit_node_delete">Sil</button>
       </div>
       <div class="modal-body">

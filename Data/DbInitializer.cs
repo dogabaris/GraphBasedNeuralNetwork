@@ -1,4 +1,4 @@
-﻿using System.Collections.ObjectModel;
+﻿using Microsoft.EntityFrameworkCore;
 using System.Linq;
 using WebApi.Entities;
 using WebApi.Entities.AppModels;
@@ -9,41 +9,37 @@ namespace WebApi.Data
     {
         public static void Initialize(AppDbContext _dbContext)
         {
-            var isCreated = _dbContext.Database.EnsureCreated();
-
-            // Hiç user var mı diye kontrol edilir.
-            if (_dbContext.User.Any())
+            if (_dbContext.User.Any() && _dbContext.Workspace.Any() && _dbContext.UserWorkspace.Any())
             {
-                return;
+                _dbContext.Database.Migrate();
             }
-
-            var users = new[]
+            else
             {
-                new User
+                var isDeleted = _dbContext.Database.EnsureDeleted();
+                var isCreated = _dbContext.Database.EnsureCreated();
+
+                var user = new User
                 {
                     FirstName = "test",
                     LastName = "test",
                     Password = "test",
                     Username = "test"
-                }
-            };
+                };
 
-            var addedUsers = new Collection<User>();
+                user = _dbContext.User.Add(user).Entity;
 
-            foreach (User user in users)
-            {
-                addedUsers.Add(_dbContext.User.Add(user).Entity);
+                var workspace = new Workspace { Name = "1" };
+                workspace = _dbContext.Workspace.Add(workspace).Entity;
+
+                var userWorkspace = new UserWorkspace
+                {
+                    User = user,
+                    Workspace = workspace
+                };
+
+                _dbContext.UserWorkspace.Add(userWorkspace);
+                _dbContext.SaveChanges();
             }
-
-            // Hiç workspace var mı diye kontrol edilir.
-            if (_dbContext.Workspace.Any())
-            {
-                return;
-            }
-
-            var workspace = new Workspace { Name = "Çalışma Alanı 1" , Users = addedUsers };
-            _dbContext.Workspace.Add(workspace);
-            _dbContext.SaveChanges();
         }
     }
 }

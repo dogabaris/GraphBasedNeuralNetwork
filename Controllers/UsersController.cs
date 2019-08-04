@@ -10,6 +10,8 @@ using Neo4jMapper;
 using Newtonsoft.Json;
 using System.IO;
 using System.Text;
+using WebApi.Entities.ReqModels;
+using System.Text.RegularExpressions;
 
 namespace WebApi.Controllers
 {
@@ -51,20 +53,19 @@ namespace WebApi.Controllers
             return Ok(result);
         }
 
+
         [HttpPost("createmodel")]
-        public async System.Threading.Tasks.Task<IActionResult> CreateModelAsync() //[FromBody] string cypherQuery
+        public async System.Threading.Tasks.Task<IActionResult> CreateModelAsync([FromBody] CreateModel createModel) //[FromBody] string cypherQuery
         {
-            using (StreamReader reader = new StreamReader(Request.Body, Encoding.UTF8))
+            var resultJson = "";
+
+            if (createModel.cypherQuery.Contains("workspace") && !string.IsNullOrWhiteSpace(createModel.cypherQuery))
             {
-                var cypherQuery = await reader.ReadToEndAsync();
-
-                var resultJson = "";
-
                 using (var session = _driver.Session())
                 {
                     try
                     {
-                        var cursor = await session.RunAsync(cypherQuery);
+                        var cursor = await session.RunAsync(createModel.cypherQuery);
                         //TODO: Return node or model as entity
                         var nodes = await cursor.MapAsync<Node>();
                         resultJson = JsonConvert.SerializeObject(nodes);
@@ -78,7 +79,14 @@ namespace WebApi.Controllers
                 if (string.IsNullOrWhiteSpace(resultJson))
                     return BadRequest(resultJson);
 
-                return Ok(resultJson);
+                var match = Regex.Match(createModel.cypherQuery, "(?<=workspace:')(.*?)(?=\')");
+
+                var res = _userService.CreateModel(match.Value, createModel.user);
+                return Ok(res);
+            }
+            else
+            {
+                return BadRequest("Düğümlere 'workspace' özelliği eklenmemiş ya da boş cypher sorgusu ile model oluşturulmaya çalışılmıştır!");
             }
         }
 
@@ -91,6 +99,17 @@ namespace WebApi.Controllers
                 return BadRequest(users);
 
             return Ok(users);
+        }
+
+        [HttpGet("getallworkspaces")]
+        public async System.Threading.Tasks.Task<IActionResult> GetAllWorkspacesAsync(int userId)
+        {
+            var workspaces = _userService.GetAllWorkspaces(userId);
+
+            if (workspaces == null)
+                return BadRequest(workspaces);
+
+            return Ok(workspaces);
         }
     }
 }
