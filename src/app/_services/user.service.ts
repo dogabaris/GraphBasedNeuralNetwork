@@ -21,7 +21,7 @@ export class UserService {
     let params = new HttpParams().set("userId", user.id );
     return this.http.get<Workspace[]>(`${config.apiUrl}/users/getallworkspaces`, { params: params });
   }
-
+  
   createModel(cypherQuery: any) {
     console.log("exportCypher fired");
     var user = JSON.parse(localStorage.getItem('currentUser'));
@@ -34,6 +34,13 @@ export class UserService {
     }
   }
 
+  trainBinaryPerceptron(workspace: string) {
+    var user = JSON.parse(localStorage.getItem('currentUser'));
+    let params = new HttpParams().set("model", workspace);
+    return this.http.get<Workspace[]>(`${config.apiUrl}/users/trainbinaryperceptron`, { params: params });
+
+  }
+  
   handleError(error: HttpErrorResponse) {
     if (error.error instanceof ErrorEvent) {
       // A client-side or network error occurred. Handle it accordingly.

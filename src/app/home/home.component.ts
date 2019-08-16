@@ -24,6 +24,8 @@ export class HomeComponent implements OnInit {
   neo4jframe: any;
   viz: any;
   interval: any;
+  showTrainTools = false;
+  selectedModel: any;
 
   constructor(private userService: UserService, @Inject(DOCUMENT) private document: Document, private toastr: ToastrService
     , private cdRef: ChangeDetectorRef) { }
@@ -42,13 +44,27 @@ export class HomeComponent implements OnInit {
     document.getElementById("viz").classList.add("hide");
     document.getElementById("tools").classList.remove("hide");
     document.getElementById("canvas").classList.remove("hide");
+    this.showTrainTools = false;
     this.cancelRefreshOfViewModel();
+  }
+
+  trainBinaryPerceptron() {
+    this.userService.trainBinaryPerceptron(this.selectedModel).pipe(first()).subscribe(result => {
+      console.log(result);
+      this.showSuccess("Model başarıyla eğitildi!");
+    },
+      err => {
+        console.log("Error occured!");
+        this.showError("Model eğitiminde sorun oluştu!");
+      });
   }
 
   getModel(modelName: string) {
     document.getElementById("tools").classList.add("hide");
     document.getElementById("canvas").classList.add("hide");
     document.getElementById("viz").classList.remove("hide");
+    this.showTrainTools = true;
+    this.selectedModel = modelName;
 
     const url = 'bolt://localhost:7687';
     const username = 'neo4j';
@@ -62,19 +78,22 @@ export class HomeComponent implements OnInit {
       server_password: "password",
       labels: {
         "input": {
-          "caption": "workspace"
+          "caption": "workspace",
+          "size": "data"
         },
         "hidden": {
-          "caption": "workspace"
+          "caption": "workspace",
+          "size": "data"
         },
         "output": {
-          "caption": "workspace"
+          "caption": "workspace",
+          "size": "data"
         }
       },
       relationships: {
         "related": {
-          "thickness": "weight",
-          "caption": "weight"
+          "caption": "weight",
+          "thickness": "weight"
         }
       },
 
@@ -91,7 +110,7 @@ export class HomeComponent implements OnInit {
 
     this.interval = setInterval(() => {
       this.refreshViewModel();
-    }, 5000);
+    }, 2000);
   }
 
   refreshViewModel() {
