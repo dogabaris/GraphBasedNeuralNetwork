@@ -111,12 +111,12 @@ namespace WebApi.Controllers
                         .Cypher
                         .Match("(i:input {workspace:'" + model + "'})-[r:related]-(h:hidden)")
                         .Return((r) =>
-                            new 
+                            new
                             {
                                 Weight = r.As<Weight>()
                             })
                         .Results.Select(x => x.Weight.weight).ToArray();
-                    
+
                     //var cursor = session.Run(@"MATCH(i:input {workspace:'" + model + "'})-[r:related]-(h:hidden) return r");
 
                     //weights = cursor.ToList()
@@ -142,30 +142,31 @@ namespace WebApi.Controllers
                     int errorCount = 0;
                     //foreach (var item in inputPerceptron)
                     //{
-                        // teach the perceptron to which class given inputs belong
-                        //var inputs = inputPerceptron.Select(inp => inp.data).ToArray();
-                        var exceptedResult = outputPerceptron.Find(o => o.expectedoutput != null).expectedoutput;
+                    // teach the perceptron to which class given inputs belong
+                    //var inputs = inputPerceptron.Select(inp => inp.data).ToArray();
+                    var exceptedResult = outputPerceptron.Find(o => o.expectedoutput != null).expectedoutput;
 
-                        var output = perceptron.LearnAsync(exceptedResult.Value, inputPerceptron);
-                        // check that the inputs were classified correctly
-                        if (output.Result != exceptedResult)
-                        {
-                            returnJson.Add(String.Format("Fail {0}", attemptCount), String.Join(",", inputPerceptron.Select(inp => inp.data.ToString()), output));
-                            //Console.WriteLine(String.Format("Fail\t {0} & {1} & {2} != {3}", String.Join(",", inputPerceptron.Select(inp => inp.data).ToList()), output);
-                            errorCount++;
-                        }
-                        else
-                        {
-                            returnJson.Add(String.Format("Pass {0}", attemptCount), String.Join(",", inputPerceptron.Select(inp => inp.data.ToString()), output));
-                            //Console.WriteLine("Pass\t {0} & {1} & {2} = {3}", String.Join(",", inputPerceptron.Select(inp => inp.data).ToList()), output);
-                        }
-                    //}
-
-                    // only quit when there were no unexpected outputs detected
-                    if (errorCount == 0)
+                    var output = perceptron.LearnAsync(exceptedResult.Value, inputPerceptron);
+                    // check that the inputs were classified correctly
+                    if (output.Result != exceptedResult)
                     {
-                        return Ok(returnJson);
+                        var inpList = inputPerceptron.Select(inp => inp.data.ToString()).ToList();
+                        inpList.Add(output.Result.ToString());
+                        var data = String.Join(", ", inpList);
+                        returnJson.Add(String.Format("Fail {0}", attemptCount), data);
+                        errorCount++;
                     }
+                    else
+                    {
+                        var inpList = inputPerceptron.Select(inp => inp.data.ToString()).ToList();
+                        inpList.Add(output.Result.ToString());
+                        var data = String.Join(", ", inpList);
+                        returnJson.Add(String.Format("Pass {0}", attemptCount), data);
+                    }
+                    //}
+                    
+                    if (errorCount == 0)
+                        return Ok(returnJson);
                 }
 
             }

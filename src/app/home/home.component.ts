@@ -51,7 +51,7 @@ export class HomeComponent implements OnInit {
   trainBinaryPerceptron() {
     this.userService.trainBinaryPerceptron(this.selectedModel).pipe(first()).subscribe(result => {
       console.log(result);
-      this.showSuccess("Model başarıyla eğitildi!");
+      this.showSuccess("Model başarıyla eğitildi! <br>" + JSON.stringify(result));
     },
       err => {
         console.log("Error occured!");
@@ -126,11 +126,11 @@ export class HomeComponent implements OnInit {
   }
 
   showSuccess(msg: any) {
-    this.toastr.success(msg);
+    this.toastr.success(msg, null, { disableTimeOut: true, closeButton: true, enableHtml: true });
   }
 
   showError(msg: any) {
-    this.toastr.error(msg);
+    this.toastr.error(msg, null, { disableTimeOut: true, closeButton: true, enableHtml: true  });
   }
 
   createModel() {
