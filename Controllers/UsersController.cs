@@ -75,7 +75,6 @@ namespace WebApi.Controllers
 
                     inputPerceptron = (await cursor.ToListAsync())
                                             .Map<BinaryNode>().ToList();
-                    //var resultJson = JsonConvert.SerializeObject(inputPerceptron);
                 }
                 catch (Exception ex)
                 {
@@ -116,13 +115,6 @@ namespace WebApi.Controllers
                                 Weight = r.As<Weight>()
                             })
                         .Results.Select(x => x.Weight.weight).ToArray();
-
-                    //var cursor = session.Run(@"MATCH(i:input {workspace:'" + model + "'})-[r:related]-(h:hidden) return r");
-
-                    //weights = cursor.ToList()
-                    //                        .Map<Weight>().Select(x => {
-                    //                            return x.weight;
-                    //                        }).ToArray();
                 }
                 catch (Exception ex)
                 {
@@ -134,20 +126,14 @@ namespace WebApi.Controllers
                 var returnJson = new JObject();
 
                 int attemptCount = 0;
-                // teach the neural network until all the inputs are correctly clasified
                 while (true)
                 {
-                    Console.WriteLine("-- Attempt: " + (++attemptCount));
 
                     int errorCount = 0;
-                    //foreach (var item in inputPerceptron)
-                    //{
-                    // teach the perceptron to which class given inputs belong
-                    //var inputs = inputPerceptron.Select(inp => inp.data).ToArray();
                     var exceptedResult = outputPerceptron.Find(o => o.expectedoutput != null).expectedoutput;
 
                     var output = perceptron.LearnAsync(exceptedResult.Value, inputPerceptron);
-                    // check that the inputs were classified correctly
+
                     if (output.Result != exceptedResult)
                     {
                         var inpList = inputPerceptron.Select(inp => inp.data.ToString()).ToList();
@@ -163,58 +149,19 @@ namespace WebApi.Controllers
                         var data = String.Join(", ", inpList);
                         returnJson.Add(String.Format("Pass {0}", attemptCount), data);
                     }
-                    //}
                     
                     if (errorCount == 0)
+                    {
+                        var cursor = await session.RunAsync(@"MATCH(h:hidden {workspace:'"+ model + "'})-[r]-(o:output) " +
+                            "set r.weight = " + Convert.ToInt32(output.Result) + 
+                            ", o.data = " + Convert.ToInt32(output.Result) +
+                            " return h,r,o");
                         return Ok(returnJson);
+                    }
+                        
                 }
 
             }
-
-            //TrainingItem[] inputPerceptron = {
-            //    new TrainingItem(true, 1, 0, 0),
-            //    //new TrainingItem(true, 1, 0, 1),
-            //    //new TrainingItem(true, 1, 1, 0),
-            //   // new TrainingItem(false, 1, 1, 1)
-            //};
-
-            //// create a perceptron with 3 inputs
-            //var perceptron = new BinaryPerceptron(3);
-            //var returnJson = new JObject();
-
-            //int attemptCount = 0;
-            //// teach the neural network until all the inputs are correctly clasified
-            //while (true)
-            //{
-            //    Console.WriteLine("-- Attempt: " + (++attemptCount));
-
-            //    int errorCount = 0;
-            //    foreach (var item in inputPerceptron)
-            //    {
-            //        // teach the perceptron to which class given inputs belong
-            //        var output = perceptron.Learn(item.Output, item.Inputs);
-            //        // check that the inputs were classified correctly
-            //        if (output != item.Output)
-            //        {
-            //            returnJson.Add(String.Format("Fail{0}", attemptCount), String.Join(",", item.Inputs[0], item.Inputs[1], item.Inputs[2], output));
-            //            Console.WriteLine("Fail\t {0} & {1} & {2} != {3}", item.Inputs[0], item.Inputs[1], item.Inputs[2], output);
-            //            errorCount++;
-            //        }
-            //        else
-            //        {
-            //            returnJson.Add(String.Format("Pass{0}", attemptCount), String.Join(",", item.Inputs[0], item.Inputs[1], item.Inputs[2], output));
-            //            Console.WriteLine("Pass\t {0} & {1} & {2} = {3}", item.Inputs[0], item.Inputs[1], item.Inputs[2], output);
-            //        }
-            //    }
-
-            //    // only quit when there were no unexpected outputs detected
-            //    if (errorCount == 0)
-            //    {
-            //        return Ok(returnJson);
-            //        //break;
-            //    }
-            //}
-            //return null;
         }
 
         [HttpPost("createmodel")]
@@ -229,7 +176,6 @@ namespace WebApi.Controllers
                     try
                     {
                         var cursor = await session.RunAsync(createModel.cypherQuery);
-                        //TODO: Return node or model as entity
                         var nodes = await cursor.MapAsync<BinaryNode>();
                         resultJson = JsonConvert.SerializeObject(nodes);
                     }

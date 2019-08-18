@@ -78,15 +78,15 @@ export class HomeComponent implements OnInit {
       server_password: "password",
       labels: {
         "input": {
-          "caption": "workspace",
+          "caption": "data",
           "size": "data"
         },
         "hidden": {
-          "caption": "workspace",
+          "caption": "data",
           "size": "data"
         },
         "output": {
-          "caption": "workspace",
+          "caption": "data",
           "size": "data"
         }
       },
