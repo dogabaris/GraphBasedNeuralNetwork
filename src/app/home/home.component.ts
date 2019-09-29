@@ -48,6 +48,17 @@ export class HomeComponent implements OnInit {
     this.cancelRefreshOfViewModel();
   }
 
+  importH5Model() {
+    this.userService.importH5Model().pipe(first()).subscribe(result => {
+      console.log(result);
+      this.showSuccess("Model başarıyla aktarıldı!");
+    },
+      err => {
+        console.log("Error occured!");
+        this.showError("Model aktarılırken sorun oluştu!");
+      });
+  }
+
   trainBinaryPerceptron() {
     this.userService.trainBinaryPerceptron(this.selectedModel).pipe(first()).subscribe(result => {
       console.log(result);

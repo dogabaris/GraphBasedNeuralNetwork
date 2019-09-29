@@ -10,10 +10,15 @@ import { Workspace } from '../_models/workspace';
 
 @Injectable({ providedIn: 'root' })
 export class UserService {
+
   constructor(private http: HttpClient, private toastr: ToastrService) { }
 
   getAll() {
     return this.http.get<User[]>(`${config.apiUrl}/users`);
+  }
+
+  importH5Model() {
+    return this.http.get(`${config.apiUrl}/users/importh5model`);
   }
 
   getAllWorkspaces() {

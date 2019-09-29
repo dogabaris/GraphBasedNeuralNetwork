@@ -6,6 +6,7 @@
     <ul class="nav nav-list bs-docs-sidenav affix form-inline well" style="z-index: 100;">
       <li>Menü</li>
       <li><a href="javascript:;" (click)="newModel()"><i class="icon-chevron-right"></i>Yeni Model Oluştur</a></li>
+      <li><a href="javascript:;" (click)="importH5Model()"><i class="icon-chevron-right"></i>H5 Modeli Import Et</a></li>
       <li>Workspace Listesi</li>
       <li *ngFor="let workspace of workspaces; let i = index"><a href="javascript:;" (click)="getModel(workspace.name)"><i class="icon-chevron-right"></i> {{workspace.name}} </a></li>
       <li><a [routerLink]="['/login']"><i class="icon-chevron-right"></i> Çıkış Yap</a></li>
