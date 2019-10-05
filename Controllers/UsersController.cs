@@ -13,10 +13,12 @@ using Newtonsoft.Json.Linq;
 using WebApi.Trainers;
 using System.Collections.Generic;
 using System.Linq;
-using ServiceStack.Text;
 using WebApi.Helpers;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
+using System.Collections;
+using WebApi.Entities.H5JsonModel;
 
 namespace WebApi.Controllers
 {
@@ -50,18 +52,113 @@ namespace WebApi.Controllers
         [HttpGet("importh5model")]
         public IActionResult ImportH5Model()
         {
+            //CREATE 
+            //(`0` :input {workspace:'4',data:'0'}) ,
+            //(`1` :hidden {workspace:'4',data:'XOR'}) ,
+            //(`2` :output {workspace:'4',exceptedoutput:'1'}) ,
+            //(`3` :setting {workspace:'4',learningrate:'0.1',treshold:'0.5'}) ,
+            //(`5` :input {workspace:'4',data:'0'}) ,
+            //(`6` :input {workspace:'4',data:'1'}) ,
+            //(`0`)-[:`related` {weight:'0.0'}]->(`1`),
+            //(`5`)-[:`related` {weight:'0.0'}]->(`1`),
+            //(`6`)-[:`related` {weight:'0.0'}]->(`1`),
+            //(`1`)-[:`related` {weight:'0.0'}]->(`2`)
+            string cypherQuery = "CREATE (`99` :output {workspace:'99'})";
             var res = RunPython(@"h5tojson.py", "demo_model.h5");
-            if(res)
-                return Ok();
+            if (res)
+            {
+                try
+                {
+                    var contentPath = Path.GetFullPath("~/Content/H5Files/").Replace("~\\", "") + "model.json";
+                    using (StreamReader r = new StreamReader(contentPath))
+                    {
+                        string json = r.ReadToEnd();
+                        dynamic data = JObject.Parse(json);
+                        var start = data.root.Value;
+                        var layers = data.groups[start].links.ToObject<List<links>>();
+                        foreach (links layer in layers)
+                        {
+                            layer.layerAlias = data.groups[layer.id].attributes[0].value.ToObject<List<string>>();
+                        }
+
+                        //foreach (links layer in layers)
+                        //{
+                        //    for (int j = 0; j < layer.layerAlias.Count; j++)
+                        //    {
+                        //        var a = data.groups[layer.].links.ToObject<List<links>>();
+                        //    }
+                        //}
+
+                        
+                        foreach (links layer in layers)
+                        {
+                            var datasets = ((IEnumerable<dynamic>)data.datasets)
+                                .Select(x => x);
+                            
+                            for (int it = 0; it < datasets.Count(); it++)
+                            {
+                                if(datasets.ElementAt(it).Value.alias[0] == "/" + layer.title + "/" + layer.layerAlias[0])
+                                {
+                                    var numberOfInput = datasets.ElementAt(it).Value.value.Count;
+                                    var numberOfHidden = datasets.ElementAt(it).Value.value[0].Count;
+
+                                    //TODO dışarı taşı
+                                    //workspace sayısı saydırılıyor ki queryde kaç eleman olduğu anlaşılsın ve nodelara eklemeye değil 
+                                    if (CountStringOccurrences(cypherQuery, "workspace") >= numberOfHidden + numberOfInput) 
+                                    {
+                                        
+
+                                    }
+                                    else
+                                    {
+                                        //input kernelin array eleman sayısı kadar input, arrayin ilk elemanındaki eleman sayısı kadar hidden node u vardır
+                                        for (int inp = 0; inp < numberOfInput; inp++)
+                                        {
+                                            cypherQuery += string.Format("(`{0}` :input {1})", inp, "{ workspace: '99', data: '0'}");
+                                        }
+                                        //hidden
+                                        for (int hid = numberOfInput; hid < numberOfInput + numberOfHidden; hid++)
+                                        {
+                                            cypherQuery += string.Format("(`{0}` :hidden {1})", hid, "{ workspace: '99', data: '0'}");
+                                        }
+                                    }
+                                }
+
+                            }
+                        }
+                    }
+
+                    return Ok();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex);
+                    return StatusCode(500);
+                }
+            }
+
 
             return StatusCode(500);
+        }
+
+        public static int CountStringOccurrences(string text, string pattern)
+        {
+            // Loop through all instances of the string 'text'.
+            int count = 0;
+            int i = 0;
+            while ((i = text.IndexOf(pattern, i)) != -1)
+            {
+                i += pattern.Length;
+                count++;
+            }
+            return count;
         }
 
         public bool RunPython(string cmd, string args) // .\h5tojson.pydemo_model.h5
         {
             ProcessStartInfo start = new ProcessStartInfo();
             var contentPath = Path.GetFullPath("~/Content/H5Files/").Replace("~\\", "");
-            
+
             //var arg1 = Path.Combine(contentPath, cmd);
             //var arg2 = Path.Combine(contentPath, args);
             start.FileName = "python2";
@@ -190,16 +287,16 @@ namespace WebApi.Controllers
                         var data = String.Join(", ", inpList);
                         returnJson.Add(String.Format("Pass {0}", attemptCount), data);
                     }
-                    
+
                     if (errorCount == 0)
                     {
-                        var cursor = await session.RunAsync(@"MATCH(h:hidden {workspace:'"+ model + "'})-[r]-(o:output) " +
-                            "set r.weight = " + Convert.ToInt32(output.Result) + 
+                        var cursor = await session.RunAsync(@"MATCH(h:hidden {workspace:'" + model + "'})-[r]-(o:output) " +
+                            "set r.weight = " + Convert.ToInt32(output.Result) +
                             ", o.data = " + Convert.ToInt32(output.Result) +
                             " return h,r,o");
                         return Ok(returnJson);
                     }
-                        
+
                 }
 
             }
