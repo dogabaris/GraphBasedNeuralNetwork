@@ -63,7 +63,7 @@ namespace WebApi.Controllers
             //(`5`)-[:`related` {weight:'0.0'}]->(`1`),
             //(`6`)-[:`related` {weight:'0.0'}]->(`1`),
             //(`1`)-[:`related` {weight:'0.0'}]->(`2`)
-            string cypherQuery = "CREATE (`99` :output {workspace:'99'})";
+            string cypherQuery = "CREATE (`6` :output {workspace:'99'})";
             var res = RunPython(@"h5tojson.py", "demo_model.h5");
             if (res)
             {
@@ -81,35 +81,20 @@ namespace WebApi.Controllers
                             layer.layerAlias = data.groups[layer.id].attributes[0].value.ToObject<List<string>>();
                         }
 
-                        //foreach (links layer in layers)
-                        //{
-                        //    for (int j = 0; j < layer.layerAlias.Count; j++)
-                        //    {
-                        //        var a = data.groups[layer.].links.ToObject<List<links>>();
-                        //    }
-                        //}
-
-                        
                         foreach (links layer in layers)
                         {
                             var datasets = ((IEnumerable<dynamic>)data.datasets)
                                 .Select(x => x);
-                            
+
                             for (int it = 0; it < datasets.Count(); it++)
                             {
-                                if(datasets.ElementAt(it).Value.alias[0] == "/" + layer.title + "/" + layer.layerAlias[0])
+                                if (datasets.ElementAt(it).Value.alias[0] == "/" + layer.title + "/" + layer.layerAlias[0])
                                 {
                                     var numberOfInput = datasets.ElementAt(it).Value.value.Count;
                                     var numberOfHidden = datasets.ElementAt(it).Value.value[0].Count;
 
-                                    //TODO dışarı taşı
                                     //workspace sayısı saydırılıyor ki queryde kaç eleman olduğu anlaşılsın ve nodelara eklemeye değil 
-                                    if (CountStringOccurrences(cypherQuery, "workspace") >= numberOfHidden + numberOfInput) 
-                                    {
-                                        
-
-                                    }
-                                    else
+                                    if (CountStringOccurrences(cypherQuery, "workspace") < numberOfHidden + numberOfInput)
                                     {
                                         //input kernelin array eleman sayısı kadar input, arrayin ilk elemanındaki eleman sayısı kadar hidden node u vardır
                                         for (int inp = 0; inp < numberOfInput; inp++)
@@ -120,6 +105,50 @@ namespace WebApi.Controllers
                                         for (int hid = numberOfInput; hid < numberOfInput + numberOfHidden; hid++)
                                         {
                                             cypherQuery += string.Format("(`{0}` :hidden {1})", hid, "{ workspace: '99', data: '0'}");
+                                        }
+                                    }
+                                    else
+                                        break;
+                                }
+
+                            }
+                        }
+
+                        //relationships 12 link olmalı 
+                        foreach (links layer in layers)
+                        {
+                            var datasets = ((IEnumerable<dynamic>)data.datasets)
+                                .Select(x => x);
+
+                            for (int it = 0; it < datasets.Count(); it++)
+                            {
+                                if (datasets.ElementAt(it).Value.alias[0] == "/" + layer.title + "/" + layer.layerAlias[0]) // 0 kernel 1 bias
+                                {
+                                    //TODO: Bias döngüsü eklenecek
+                                    //kernellerdeki toplam eleman sayısı kadar relation oluyor.
+                                    if (layer.title.Split('_').Count() > 1) //layerların nodelarının doğru idlerde olması için çarpıyor
+                                    {
+                                        var factor = int.Parse(layer.title.Split('_').LastOrDefault()) * datasets.ElementAt(it).Value.value.Count;
+                                        var nodeNumber = CountStringOccurrences(cypherQuery, "workspace");
+
+                                        for (int x = 0; x < datasets.ElementAt(it).Value.value.Count; x++) //kernel küme
+                                        {
+                                            for (int y = 0; y < datasets.ElementAt(it).Value.value[x].Count; y++) //kernel eleman
+                                            {
+                                                cypherQuery += string.Format("(`{0}`)-[:`related` {{ kernel: '{1}'}}]->(`{2}`)", x + factor, datasets.ElementAt(it).Value.value[x][y].Value, nodeNumber - 1); //Output noduna bağlantı yapılıyor. , bias: '{2}'
+                                            }
+                                        }
+                                    }
+                                    else
+                                    {
+                                        for (int x = 0; x < datasets.ElementAt(it).Value.value.Count; x++) //kernel küme
+                                        {
+                                            var iterator = 0;
+                                            for (int y = 0; y < datasets.ElementAt(it).Value.value[x].Count; y++) //kernel eleman
+                                            {
+                                                cypherQuery += string.Format("(`{0}`)-[:`related` {{ kernel: '{1}'}}]->(`{2}`)", x, datasets.ElementAt(it).Value.value[x][y].Value, datasets.ElementAt(it).Value.value[x].Count + iterator); //, bias: '{2}'
+                                                iterator++;
+                                            }
                                         }
                                     }
                                 }
@@ -143,7 +172,6 @@ namespace WebApi.Controllers
 
         public static int CountStringOccurrences(string text, string pattern)
         {
-            // Loop through all instances of the string 'text'.
             int count = 0;
             int i = 0;
             while ((i = text.IndexOf(pattern, i)) != -1)
@@ -158,22 +186,19 @@ namespace WebApi.Controllers
         {
             ProcessStartInfo start = new ProcessStartInfo();
             var contentPath = Path.GetFullPath("~/Content/H5Files/").Replace("~\\", "");
-
-            //var arg1 = Path.Combine(contentPath, cmd);
-            //var arg2 = Path.Combine(contentPath, args);
+            
             start.FileName = "python2";
             start.WorkingDirectory = Path.GetDirectoryName(contentPath);
             start.Arguments = string.Format("\"{0}\" \"{1}\"", cmd, args);
-            start.UseShellExecute = false;// Do not use OS shell
-            start.CreateNoWindow = true; // We don't need new window
-            start.RedirectStandardOutput = true;// Any output, generated by application will be redirected back
-            start.RedirectStandardError = true; // Any error in standard output will be redirected back (for example exceptions)
+            start.UseShellExecute = false;
+            start.CreateNoWindow = true; 
+            start.RedirectStandardOutput = true;
+            start.RedirectStandardError = true; 
             using (Process process = Process.Start(start))
             {
                 using (StreamReader reader = process.StandardOutput)
                 {
-                    //string stderr = process.StandardError.ReadToEnd(); // Here are the exceptions from our Python script
-                    string result = reader.ReadToEnd(); // Here is the result of StdOut(for example: print "test")
+                    string result = reader.ReadToEnd();
                     if (!string.IsNullOrEmpty(result))
                         return true;
                     else
@@ -195,7 +220,7 @@ namespace WebApi.Controllers
         }
 
         [HttpGet("trainbinaryperceptron")]
-        public async System.Threading.Tasks.Task<IActionResult> TrainBinaryPerceptronAsync(string model) //[FromBody] string cypherQuery
+        public async System.Threading.Tasks.Task<IActionResult> TrainBinaryPerceptronAsync(string model)
         {
             var client = Neo4JHelper.ConnectDb();
 
