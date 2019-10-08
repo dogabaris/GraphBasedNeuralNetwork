@@ -125,6 +125,18 @@ namespace WebApi.Controllers
                                 if (datasets.ElementAt(it).Value.alias[0] == "/" + layer.title + "/" + layer.layerAlias[0]) // 0 kernel 1 bias
                                 {
                                     //TODO: Bias döngüsü eklenecek
+
+                                    var bias = new JArray();
+
+                                    //bias listesini alır biası relationlara dağıtır
+                                    for (int it2 = 0; it2 < datasets.Count(); it2++)
+                                    {
+                                        if (datasets.ElementAt(it2).Value.alias[0] == "/" + layer.title + "/" + layer.layerAlias[1]) // 0 kernel 1 bias
+                                        {
+                                            bias = datasets.ElementAt(it2).Value.value;
+                                        }
+                                    }
+
                                     //kernellerdeki toplam eleman sayısı kadar relation oluyor.
                                     if (layer.title.Split('_').Count() > 1) //layerların nodelarının doğru idlerde olması için çarpıyor
                                     {
@@ -135,7 +147,7 @@ namespace WebApi.Controllers
                                         {
                                             for (int y = 0; y < datasets.ElementAt(it).Value.value[x].Count; y++) //kernel eleman
                                             {
-                                                cypherQuery += string.Format("(`{0}`)-[:`related` {{ kernel: '{1}'}}]->(`{2}`)", x + factor, datasets.ElementAt(it).Value.value[x][y].Value, nodeNumber - 1); //Output noduna bağlantı yapılıyor. , bias: '{2}'
+                                                cypherQuery += string.Format("(`{0}`)-[:`related` {{ kernel: '{1}', bias: '{2}'}}]->(`{3}`)", x + factor, datasets.ElementAt(it).Value.value[x][y].Value, bias[0], nodeNumber - 1); //Output noduna bağlantı yapılıyor. , bias: '{2}'
                                             }
                                         }
                                     }
@@ -146,7 +158,7 @@ namespace WebApi.Controllers
                                             var iterator = 0;
                                             for (int y = 0; y < datasets.ElementAt(it).Value.value[x].Count; y++) //kernel eleman
                                             {
-                                                cypherQuery += string.Format("(`{0}`)-[:`related` {{ kernel: '{1}'}}]->(`{2}`)", x, datasets.ElementAt(it).Value.value[x][y].Value, datasets.ElementAt(it).Value.value[x].Count + iterator); //, bias: '{2}'
+                                                cypherQuery += string.Format("(`{0}`)-[:`related` {{ kernel: '{1}', bias: '{2}'}}]->(`{3}`)", x, datasets.ElementAt(it).Value.value[x][y].Value, bias[x], datasets.ElementAt(it).Value.value[x].Count + iterator); //, bias: '{2}'
                                                 iterator++;
                                             }
                                         }
@@ -186,14 +198,14 @@ namespace WebApi.Controllers
         {
             ProcessStartInfo start = new ProcessStartInfo();
             var contentPath = Path.GetFullPath("~/Content/H5Files/").Replace("~\\", "");
-            
+
             start.FileName = "python2";
             start.WorkingDirectory = Path.GetDirectoryName(contentPath);
             start.Arguments = string.Format("\"{0}\" \"{1}\"", cmd, args);
             start.UseShellExecute = false;
-            start.CreateNoWindow = true; 
+            start.CreateNoWindow = true;
             start.RedirectStandardOutput = true;
-            start.RedirectStandardError = true; 
+            start.RedirectStandardError = true;
             using (Process process = Process.Start(start))
             {
                 using (StreamReader reader = process.StandardOutput)
