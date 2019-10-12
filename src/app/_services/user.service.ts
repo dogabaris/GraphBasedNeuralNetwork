@@ -18,21 +18,27 @@ export class UserService {
   }
 
   importH5Model() {
-    return this.http.get(`${config.apiUrl}/users/importh5model`);
+    var user = JSON.parse(localStorage.getItem('currentUser'));
+    if (user && user.token) {
+      return this.http.post(`${config.apiUrl}/users/importh5model`,  user);
+    }
+    else {
+      this.toastr.error("Giriş yapın!");
+    }
   }
 
   getAllWorkspaces() {
     var user = JSON.parse(localStorage.getItem('currentUser'));
-    let params = new HttpParams().set("userId", user.id );
+    let params = new HttpParams().set("userId", user.id);
     return this.http.get<Workspace[]>(`${config.apiUrl}/users/getallworkspaces`, { params: params });
   }
-  
+
   createModel(cypherQuery: any) {
     console.log("exportCypher fired");
     var user = JSON.parse(localStorage.getItem('currentUser'));
     if (user && user.token) {
       return this.http.post(`${config.apiUrl}/users/createmodel`, { "user": user, "cypherQuery": cypherQuery });
-      
+
     }
     else {
       this.toastr.error("Giriş yapın!");
@@ -45,7 +51,7 @@ export class UserService {
     return this.http.get<Workspace[]>(`${config.apiUrl}/users/trainbinaryperceptron`, { params: params });
 
   }
-  
+
   handleError(error: HttpErrorResponse) {
     if (error.error instanceof ErrorEvent) {
       // A client-side or network error occurred. Handle it accordingly.

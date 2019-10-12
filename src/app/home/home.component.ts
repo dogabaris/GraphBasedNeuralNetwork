@@ -89,11 +89,11 @@ export class HomeComponent implements OnInit {
       server_password: "password",
       labels: {
         "input": {
-          "caption": "data",
+          "caption": "input",
           "size": "data"
         },
         "hidden": {
-          "caption": "data",
+          "caption": "hidden",
           "size": "data"
         },
         "output": {

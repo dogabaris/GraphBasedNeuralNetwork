@@ -19,6 +19,9 @@ using System.IO;
 using System.Linq;
 using System.Collections;
 using WebApi.Entities.H5JsonModel;
+using System.Net.Http;
+using Microsoft.AspNetCore.Http;
+using System.Net.Http.Headers;
 
 namespace WebApi.Controllers
 {
@@ -29,11 +32,13 @@ namespace WebApi.Controllers
     {
         private IUserService _userService;
         private IDriver _driver;
+        private readonly IHttpContextAccessor _context;
 
-        public UsersController(IUserService userService, IDriver driver)
+        public UsersController(IUserService userService, IDriver driver, IHttpContextAccessor context)
         {
             _userService = userService;
             _driver = driver;
+            _context = context;
         }
 
         [AllowAnonymous]
@@ -49,8 +54,8 @@ namespace WebApi.Controllers
         }
 
         [AllowAnonymous]
-        [HttpGet("importh5model")]
-        public IActionResult ImportH5Model()
+        [HttpPost("importh5model")]
+        public IActionResult ImportH5Model([FromBody] User user)
         {
             //CREATE 
             //(`0` :input {workspace:'4',data:'0'}) ,
@@ -63,7 +68,7 @@ namespace WebApi.Controllers
             //(`5`)-[:`related` {weight:'0.0'}]->(`1`),
             //(`6`)-[:`related` {weight:'0.0'}]->(`1`),
             //(`1`)-[:`related` {weight:'0.0'}]->(`2`)
-            string cypherQuery = "CREATE (`6` :output {workspace:'99'})";
+            string cypherQuery = "CREATE (`6` :output {workspace:'99'}),";
             var res = RunPython(@"h5tojson.py", "demo_model.h5");
             if (res)
             {
@@ -99,12 +104,12 @@ namespace WebApi.Controllers
                                         //input kernelin array eleman sayısı kadar input, arrayin ilk elemanındaki eleman sayısı kadar hidden node u vardır
                                         for (int inp = 0; inp < numberOfInput; inp++)
                                         {
-                                            cypherQuery += string.Format("(`{0}` :input {1})", inp, "{ workspace: '99', data: '0'}");
+                                            cypherQuery += string.Format("(`{0}` :input {1}),", inp, "{ workspace: '99', data: '0'}");
                                         }
                                         //hidden
                                         for (int hid = numberOfInput; hid < numberOfInput + numberOfHidden; hid++)
                                         {
-                                            cypherQuery += string.Format("(`{0}` :hidden {1})", hid, "{ workspace: '99', data: '0'}");
+                                            cypherQuery += string.Format("(`{0}` :hidden {1}),", hid, "{ workspace: '99', data: '0'}");
                                         }
                                     }
                                     else
@@ -147,7 +152,7 @@ namespace WebApi.Controllers
                                         {
                                             for (int y = 0; y < datasets.ElementAt(it).Value.value[x].Count; y++) //kernel eleman
                                             {
-                                                cypherQuery += string.Format("(`{0}`)-[:`related` {{ kernel: '{1}', bias: '{2}'}}]->(`{3}`)", x + factor, datasets.ElementAt(it).Value.value[x][y].Value, bias[0], nodeNumber - 1); //Output noduna bağlantı yapılıyor. , bias: '{2}'
+                                                cypherQuery += string.Format("(`{0}`)-[:`related` {{ kernel: '{1}', bias: '{2}'}}]->(`{3}`),", x + factor, datasets.ElementAt(it).Value.value[x][y].Value, bias[0], nodeNumber - 1); //Output noduna bağlantı yapılıyor. , bias: '{2}'
                                             }
                                         }
                                     }
@@ -158,7 +163,7 @@ namespace WebApi.Controllers
                                             var iterator = 0;
                                             for (int y = 0; y < datasets.ElementAt(it).Value.value[x].Count; y++) //kernel eleman
                                             {
-                                                cypherQuery += string.Format("(`{0}`)-[:`related` {{ kernel: '{1}', bias: '{2}'}}]->(`{3}`)", x, datasets.ElementAt(it).Value.value[x][y].Value, bias[x], datasets.ElementAt(it).Value.value[x].Count + iterator); //, bias: '{2}'
+                                                cypherQuery += string.Format("(`{0}`)-[:`related` {{ kernel: '{1}', bias: '{2}'}}]->(`{3}`),", x, datasets.ElementAt(it).Value.value[x][y].Value, bias[x], datasets.ElementAt(it).Value.value[x].Count + iterator); //, bias: '{2}'
                                                 iterator++;
                                             }
                                         }
@@ -169,7 +174,20 @@ namespace WebApi.Controllers
                         }
                     }
 
-                    return Ok();
+                    var response = string.Empty;
+                    using (var client = new HttpClient())
+                    {
+                        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", user.Token);
+                        var result = client.PostAsJsonAsync("http://" + Request.Host + "/users/createmodel", new CreateModel
+                        {
+                            cypherQuery = cypherQuery.TrimEnd(','),
+                            user = user
+                        }).Result;
+                        if (result.IsSuccessStatusCode)
+                            return Ok();
+                    }
+
+                    return BadRequest();
                 }
                 catch (Exception ex)
                 {
