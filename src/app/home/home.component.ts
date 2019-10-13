@@ -59,6 +59,17 @@ export class HomeComponent implements OnInit {
       });
   }
 
+  exportH5Model() {
+    this.userService.exportH5Model(this.selectedModel).pipe(first()).subscribe(result => {
+      console.log(result);
+      this.showSuccess("Model başarıyla dışa aktarıldı!");
+    },
+      err => {
+        console.log("Error occured!");
+        this.showError("Model aktarılırken sorun oluştu!");
+      });
+  }
+
   trainBinaryPerceptron() {
     this.userService.trainBinaryPerceptron(this.selectedModel).pipe(first()).subscribe(result => {
       console.log(result);

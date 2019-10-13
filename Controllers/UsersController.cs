@@ -22,6 +22,8 @@ using WebApi.Entities.H5JsonModel;
 using System.Net.Http;
 using Microsoft.AspNetCore.Http;
 using System.Net.Http.Headers;
+using ServiceStack.Text;
+using Neo4jClient;
 
 namespace WebApi.Controllers
 {
@@ -33,10 +35,12 @@ namespace WebApi.Controllers
         private IUserService _userService;
         private IDriver _driver;
         private readonly IHttpContextAccessor _context;
+        public GraphClient Client { get; set; }
 
         public UsersController(IUserService userService, IDriver driver, IHttpContextAccessor context)
         {
             _userService = userService;
+            Client = Neo4JHelper.ConnectDb();
             _driver = driver;
             _context = context;
         }
@@ -57,17 +61,6 @@ namespace WebApi.Controllers
         [HttpPost("importh5model")]
         public IActionResult ImportH5Model([FromBody] User user)
         {
-            //CREATE 
-            //(`0` :input {workspace:'4',data:'0'}) ,
-            //(`1` :hidden {workspace:'4',data:'XOR'}) ,
-            //(`2` :output {workspace:'4',exceptedoutput:'1'}) ,
-            //(`3` :setting {workspace:'4',learningrate:'0.1',treshold:'0.5'}) ,
-            //(`5` :input {workspace:'4',data:'0'}) ,
-            //(`6` :input {workspace:'4',data:'1'}) ,
-            //(`0`)-[:`related` {weight:'0.0'}]->(`1`),
-            //(`5`)-[:`related` {weight:'0.0'}]->(`1`),
-            //(`6`)-[:`related` {weight:'0.0'}]->(`1`),
-            //(`1`)-[:`related` {weight:'0.0'}]->(`2`)
             string cypherQuery = "CREATE (`6` :output {workspace:'99'}),";
             var res = RunPython(@"h5tojson.py", "demo_model.h5");
             if (res)
@@ -198,6 +191,36 @@ namespace WebApi.Controllers
 
 
             return StatusCode(500);
+        }
+
+        [AllowAnonymous]
+        [HttpPost("exporth5model")]
+        public IActionResult ExportH5Model([FromBody] ExportH5Model exportModel)
+        {
+            var neoModelCypher = "start n=node(*), r=relationship(*) MATCH (n)-[r]->(n2) where(n.workspace = '" + exportModel.workspace + "'and EXISTS (r.kernel)) return n,r,n2";
+
+            var H5json = new { apiVersion = "1.1.1", datasets = new { }, groups = new { }, root = Guid.NewGuid() };
+            
+            using (var session = _driver.Session())
+            {
+                try
+                {
+                    var cursor = session.Run(neoModelCypher);
+                    var graphJson = new List<IReadOnlyDictionary<string, object>>();
+                    foreach (var record in cursor)
+                    {
+                        graphJson.Add(record.Values);
+                    }
+                    
+                }
+                catch (Exception ex)
+                {
+                    return BadRequest();
+                }
+            }
+
+
+            return Ok();
         }
 
         public static int CountStringOccurrences(string text, string pattern)

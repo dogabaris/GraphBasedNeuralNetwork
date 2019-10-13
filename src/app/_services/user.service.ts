@@ -27,6 +27,16 @@ export class UserService {
     }
   }
 
+  exportH5Model(workspace: any) {
+    var user = JSON.parse(localStorage.getItem('currentUser'));
+    if (user && user.token) {
+      return this.http.post(`${config.apiUrl}/users/exporth5model`, { "user": user, "workspace": workspace});
+    }
+    else {
+      this.toastr.error("Giriş yapın!");
+    }
+  }
+
   getAllWorkspaces() {
     var user = JSON.parse(localStorage.getItem('currentUser'));
     let params = new HttpParams().set("userId", user.id);
