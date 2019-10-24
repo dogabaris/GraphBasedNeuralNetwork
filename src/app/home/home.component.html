@@ -7,6 +7,7 @@
       <li>Menü</li>
       <li><a href="javascript:;" (click)="newModel()"><i class="icon-chevron-right"></i>Yeni Model Oluştur</a></li>
       <li><a href="javascript:;" (click)="importH5Model()"><i class="icon-chevron-right"></i>H5 Modeli Import Et</a></li>
+      <li><a href="javascript:;" (click)="importCnnH5Model()"><i class="icon-chevron-right"></i>H5 CNN Modeli Import Et</a></li>
       <li><a href="javascript:;" (click)="exportH5Model()"><i class="icon-chevron-right"></i>H5 Modeli Export Et</a></li>
       <li>Workspace Listesi</li>
       <li *ngFor="let workspace of workspaces; let i = index"><a href="javascript:;" (click)="getModel(workspace.name)"><i class="icon-chevron-right"></i> {{workspace.name}} </a></li>

@@ -7,6 +7,9 @@
     <Content Remove="tsconfig.json" />
   </ItemGroup>
   <ItemGroup>
+    <None Remove="Content\H5Files\alexnet_weights.h5" />
+  </ItemGroup>
+  <ItemGroup>
     <None Include="tsconfig.json" />
   </ItemGroup>
   <ItemGroup>

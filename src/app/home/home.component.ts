@@ -59,6 +59,17 @@ export class HomeComponent implements OnInit {
       });
   }
 
+  importCnnH5Model() {
+    this.userService.importCnnH5Model().pipe(first()).subscribe(result => {
+      console.log(result);
+      this.showSuccess("Model başarıyla aktarıldı!");
+    },
+      err => {
+        console.log("Error occured!");
+        this.showError("Model aktarılırken sorun oluştu!");
+      });
+  }
+
   exportH5Model() {
     this.userService.exportH5Model(this.selectedModel).pipe(first()).subscribe(result => {
       console.log(result);

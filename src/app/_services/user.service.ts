@@ -27,6 +27,16 @@ export class UserService {
     }
   }
 
+  importCnnH5Model() {
+    var user = JSON.parse(localStorage.getItem('currentUser'));
+    if (user && user.token) {
+      return this.http.post(`${config.apiUrl}/users/importcnnh5model`, user);
+    }
+    else {
+      this.toastr.error("Giriş yapın!");
+    }
+  }
+
   exportH5Model(workspace: any) {
     var user = JSON.parse(localStorage.getItem('currentUser'));
     if (user && user.token) {

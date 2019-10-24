@@ -24,6 +24,7 @@ using Microsoft.AspNetCore.Http;
 using System.Net.Http.Headers;
 using ServiceStack.Text;
 using Neo4jClient;
+using Microsoft.EntityFrameworkCore.Internal;
 
 namespace WebApi.Controllers
 {
@@ -179,6 +180,82 @@ namespace WebApi.Controllers
                         if (result.IsSuccessStatusCode)
                             return Ok();
                     }
+
+                    return BadRequest();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex);
+                    return StatusCode(500);
+                }
+            }
+
+
+            return StatusCode(500);
+        }
+
+        [AllowAnonymous]
+        [HttpPost("importcnnh5model")]
+        public IActionResult ImportCnnH5Model([FromBody] User user)
+        {
+            string cypherQuery = "CREATE (`999` :output {workspace:'99'}),";
+            var res = RunPython(@"h5tojson.py", "mobilenet_2_5_128_tf.h5");
+            if (res)
+            {
+                try
+                {
+                    var contentPath = Path.GetFullPath("~/Content/H5Files/").Replace("~\\", "") + "model.json";
+                    using (StreamReader r = new StreamReader(contentPath))
+                    {
+                        string json = r.ReadToEnd();
+                        dynamic data = JObject.Parse(json);
+                        var start = data.root.Value;
+                        List<links> layersUnordered = data.groups[start].links.ToObject<List<links>>();
+                        List<string> orderList = data.groups[start].attributes[2].value.ToObject<List<string>>();
+                        var layers = layersUnordered.OrderBy(item => orderList.IndexOf(item.title)).ToList();
+
+                        foreach (links layer in layers)
+                        {
+                            if(data.groups[layer.id].attributes[0].value != null)
+                                layer.layerAlias = data.groups[layer.id].attributes[0].value.ToObject<List<string>>();
+                        }
+
+                        foreach (links layer in layers)
+                        {
+                            var datasets = ((IEnumerable<dynamic>)data.datasets)
+                                .Select(x => x);
+
+                            for (int it = 0; it < datasets.Count(); it++)
+                            {
+                                
+                            }
+                        }
+
+                        //relationships 12 link olmalı 
+                        foreach (links layer in layers)
+                        {
+                            var datasets = ((IEnumerable<dynamic>)data.datasets)
+                                .Select(x => x);
+
+                            for (int it = 0; it < datasets.Count(); it++)
+                            {
+                                
+                            }
+                        }
+                    }
+
+                    //var response = string.Empty;
+                    //using (var client = new HttpClient())
+                    //{
+                    //    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", user.Token);
+                    //    var result = client.PostAsJsonAsync("http://" + Request.Host + "/users/createmodel", new CreateModel
+                    //    {
+                    //        cypherQuery = cypherQuery.TrimEnd(','),
+                    //        user = user
+                    //    }).Result;
+                    //    if (result.IsSuccessStatusCode)
+                    //        return Ok();
+                    //}
 
                     return BadRequest();
                 }
