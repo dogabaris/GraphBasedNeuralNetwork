@@ -198,7 +198,7 @@ namespace WebApi.Controllers
         [HttpPost("importcnnh5model")]
         public IActionResult ImportCnnH5Model([FromBody] User user)
         {
-            string cypherQuery = "CREATE (`999` :output {workspace:'99'}),";
+            string cypherQuery = "CREATE (`999` :output {workspace:'100' }),";
             var res = RunPython(@"h5tojson.py", "mobilenet_2_5_128_tf.h5");
             if (res)
             {
@@ -216,10 +216,12 @@ namespace WebApi.Controllers
 
                         foreach (links layer in layers)
                         {
-                            if(data.groups[layer.id].attributes[0].value != null)
+                            if (data.groups[layer.id].attributes[0].value != null)
                                 layer.layerAlias = data.groups[layer.id].attributes[0].value.ToObject<List<string>>();
                         }
 
+                        long id = 3;
+                        //input 128 * 128 * 3
                         foreach (links layer in layers)
                         {
                             var datasets = ((IEnumerable<dynamic>)data.datasets)
@@ -227,7 +229,46 @@ namespace WebApi.Controllers
 
                             for (int it = 0; it < datasets.Count(); it++)
                             {
-                                
+                                //3 channeldan görseli göndereceği için 3 node input olmalı
+                                if (layer.title.Contains("input"))
+                                {
+                                    cypherQuery += string.Format("(`0` :{0} {{ workspace: '100', data: '0' }}),", layer.title);
+                                    cypherQuery += string.Format("(`1` :{0} {{ workspace: '100', data: '0' }}),", layer.title);
+                                    cypherQuery += string.Format("(`2` :{0} {{ workspace: '100', data: '0' }}),", layer.title);
+                                    break;
+                                }
+                                else
+                                {
+                                    if (layer.layerAlias == null)
+                                    {
+                                        for (long lay = 0; lay < 3; lay++)
+                                        {
+                                            cypherQuery += string.Format("(`{0}` :{1} {{ workspace: '100', data: '0' }}),", id, layer.title);
+
+                                            id++;
+                                        }
+                                        break;
+                                    }
+                                    else
+                                    {
+                                        foreach (string layerAlias in layer.layerAlias)
+                                        {
+                                            if (datasets.ElementAt(it).Value.alias[0] == "/" + layer.title + "/" + layerAlias)
+                                            {
+                                                long nextNodeCount = 3;
+                                                if (datasets.ElementAt(it).Value.shape.dims.Count == 4)
+                                                    nextNodeCount = datasets.ElementAt(it).Value.shape.dims[datasets.ElementAt(it).Value.shape.dims.Count - 3].Value;
+
+                                                for (long lay = 0; lay < nextNodeCount; lay++)
+                                                {
+                                                    cypherQuery += string.Format("(`{0}` :{1} {{ workspace: '100', data: '0' }}),", id, layerAlias);
+
+                                                    id++;
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
                             }
                         }
 
@@ -239,7 +280,7 @@ namespace WebApi.Controllers
 
                             for (int it = 0; it < datasets.Count(); it++)
                             {
-                                
+
                             }
                         }
                     }
@@ -277,7 +318,7 @@ namespace WebApi.Controllers
             var neoModelCypher = "start n=node(*), r=relationship(*) MATCH (n)-[r]->(n2) where(n.workspace = '" + exportModel.workspace + "'and EXISTS (r.kernel)) return n,r,n2";
 
             var H5json = new { apiVersion = "1.1.1", datasets = new { }, groups = new { }, root = Guid.NewGuid() };
-            
+
             using (var session = _driver.Session())
             {
                 try
@@ -288,7 +329,7 @@ namespace WebApi.Controllers
                     {
                         graphJson.Add(record.Values);
                     }
-                    
+
                 }
                 catch (Exception ex)
                 {
