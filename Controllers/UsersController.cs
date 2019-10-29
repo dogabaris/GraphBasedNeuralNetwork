@@ -123,8 +123,6 @@ namespace WebApi.Controllers
                             {
                                 if (datasets.ElementAt(it).Value.alias[0] == "/" + layer.title + "/" + layer.layerAlias[0]) // 0 kernel 1 bias
                                 {
-                                    //TODO: Bias döngüsü eklenecek
-
                                     var bias = new JArray();
 
                                     //bias listesini alır biası relationlara dağıtır
@@ -272,16 +270,55 @@ namespace WebApi.Controllers
                             }
                         }
 
-                        //relationships 12 link olmalı 
+                        id = 0;
+                        var layerCount = 1;
+                        var nextLayerFirst = 3;
+                        //relationships
                         foreach (links layer in layers)
                         {
                             var datasets = ((IEnumerable<dynamic>)data.datasets)
-                                .Select(x => x);
+                                .Select(x => x).ToList();
 
-                            for (int it = 0; it < datasets.Count(); it++)
+                            //for (int it = 0; it < datasets.Count(); it++)//layer
+                            foreach (var it in datasets)
                             {
-
+                                if (layer.layerAlias == null) // && layers.ElementAtOrDefault(layers.IndexOf(layer) + 1)?.layerAlias != null
+                                {
+                                    for (var dNodeIt = 0; dNodeIt < 3; dNodeIt++)
+                                    {
+                                        for (var dRelationIt = 0; dRelationIt < 3; dRelationIt++)
+                                        {
+                                            cypherQuery += string.Format("(`{0}`)-[:`related` {{  matrix: '{1}'}}]->(`{2}`),", id * layerCount, it.Value.value[dNodeIt][dRelationIt], nextLayerFirst + dRelationIt); //((3 + dRelationIt) * (layers.IndexOf(layer) + 1)) * layerCount  it layer için
+                                        }
+                                        id++;
+                                    }
+                                    nextLayerFirst += 3;
+                                    datasets.Remove(it);
+                                    break; //TODO: Break olunca it 0 lanıyor yanlış yere bakıyor. ***
+                                }
+                                else
+                                {
+                                    //TODO: conv_preds e dikkat edilecek 2 boyutlu tek boyutlu yerlere dönüyor.
+                                    if (it.Value.alias[0] == "/" + layer.title + "/" + layer.layerAlias[0]) // 
+                                    {
+                                        if (it.Value.shape.dims.Count == 4) //normal kernel, depthwise(dw) veya pointwisetır(pw) 
+                                        {
+                                            for (var nodeIt = 0; nodeIt < it.Value.shape.dims[0].Value; nodeIt++)
+                                            {
+                                                for (var relationIt = 0; relationIt < it.Value.shape.dims[1].Value; relationIt++)
+                                                {
+                                                    cypherQuery += string.Format("(`{0}`)-[:`related` {{  matrix: '{1}'}}]->(`{2}`),", id, it.Value.value[nodeIt][relationIt], nextLayerFirst + relationIt);
+                                                }
+                                                id++;
+                                            }
+                                            nextLayerFirst += 3;
+                                        }
+                                    }
+                                    datasets.Remove(it);
+                                }
                             }
+
+                            layerCount++;
                         }
                     }
 
