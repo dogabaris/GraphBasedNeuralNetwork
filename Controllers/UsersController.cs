@@ -220,11 +220,10 @@ namespace WebApi.Controllers
 
                         long id = 3;
                         //input 128 * 128 * 3
+                        var datasets = ((IEnumerable<dynamic>)data.datasets)
+                                .Select(x => x).ToList();
                         foreach (links layer in layers)
                         {
-                            var datasets = ((IEnumerable<dynamic>)data.datasets)
-                                .Select(x => x);
-
                             for (int it = 0; it < datasets.Count(); it++)
                             {
                                 //3 channeldan görseli göndereceği için 3 node input olmalı
@@ -273,12 +272,44 @@ namespace WebApi.Controllers
                         id = 0;
                         var layerCount = 1;
                         var nextLayerFirst = 3;
+
+                        var orderedDataset = new List<dynamic>();
+
+                        //dataseti sıralayıp olmayan itemları da içeriye gömmek lazım ki sırasında bir önceki item
+
+                        foreach (var order in  orderList)
+                        {
+                            foreach (var dItem in datasets)
+                            {
+                                if (dItem.Value.alias[0].Value.Contains(order + "/"))
+                                {
+                                    //var gonnaAddItems = datasets.Select(x => x.Value.alias.Value.Contains(order)).ToList();
+                                    orderedDataset.Add(dItem);
+                                }
+                            }
+
+                            if (orderedDataset.Count(x => x.Value.alias[0].Value.Contains(order))==0)
+                            {
+                                dynamic jsonObject = new JObject();
+                                var guid = Guid.NewGuid().ToString();
+                                JObject obj = JObject.FromObject(new
+                                {
+                                    inserted = new
+                                    {
+                                        alias = new string[] { order },
+                                        shape = new
+                                        {
+                                            dims = new int[0]
+                                        },
+                                    }
+                                });
+                                orderedDataset.Add(obj.First);
+                            }
+                        }
+
                         //relationships
                         foreach (links layer in layers)
                         {
-                            var datasets = ((IEnumerable<dynamic>)data.datasets)
-                                .Select(x => x).ToList();
-
                             //for (int it = 0; it < datasets.Count(); it++)//layer
                             foreach (var it in datasets)
                             {
@@ -299,22 +330,27 @@ namespace WebApi.Controllers
                                 else
                                 {
                                     //TODO: conv_preds e dikkat edilecek 2 boyutlu tek boyutlu yerlere dönüyor.
-                                    if (it.Value.alias[0] == "/" + layer.title + "/" + layer.layerAlias[0]) // 
+
+                                    foreach (var lyrAlias in layer.layerAlias)
                                     {
-                                        if (it.Value.shape.dims.Count == 4) //normal kernel, depthwise(dw) veya pointwisetır(pw) 
+                                        if (it.Value.alias[0] == "/" + layer.title + "/" + lyrAlias) // layer.layerAlias[0]
                                         {
-                                            for (var nodeIt = 0; nodeIt < it.Value.shape.dims[0].Value; nodeIt++)
+                                            if (it.Value.shape.dims.Count == 4) //normal kernel, depthwise(dw) veya pointwisetır(pw) 
                                             {
-                                                for (var relationIt = 0; relationIt < it.Value.shape.dims[1].Value; relationIt++)
+                                                for (var nodeIt = 0; nodeIt < it.Value.shape.dims[0].Value; nodeIt++)
                                                 {
-                                                    cypherQuery += string.Format("(`{0}`)-[:`related` {{  matrix: '{1}'}}]->(`{2}`),", id, it.Value.value[nodeIt][relationIt], nextLayerFirst + relationIt);
+                                                    for (var relationIt = 0; relationIt < it.Value.shape.dims[1].Value; relationIt++)
+                                                    {
+                                                        cypherQuery += string.Format("(`{0}`)-[:`related` {{  matrix: '{1}'}}]->(`{2}`),", id, it.Value.value[nodeIt][relationIt], nextLayerFirst + relationIt);
+                                                    }
+                                                    id++;
                                                 }
-                                                id++;
+                                                nextLayerFirst += 3;
                                             }
-                                            nextLayerFirst += 3;
+                                            datasets.Remove(it);
                                         }
                                     }
-                                    datasets.Remove(it);
+
                                 }
                             }
 

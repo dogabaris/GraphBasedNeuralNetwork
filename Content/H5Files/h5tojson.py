@@ -1,14 +1,3 @@
-##############################################################################
-# Copyright by The HDF Group.                                                #
-# All rights reserved.                                                       #
-#                                                                            #
-# This file is part of H5Serv (HDF5 REST Server) Service, Libraries and      #
-# Utilities.  The full HDF5 REST Server copyright notice, including          #
-# terms governing use, modification, and redistribution, is contained in     #
-# the file COPYING, which can be found at the root of the source code        #
-# distribution tree.  If you do not have access to this file, you may        #
-# request a copy from help@hdfgroup.org.                                     #
-##############################################################################
 import sys
 import json
 import argparse
@@ -205,10 +194,7 @@ class DumpJson:
         
         with open('model.json', 'w') as f:
     		json.dump(self.json, f, sort_keys=True, indent=4)
-"""
-  Generate a temporary filename to avoid problems with trying to create a dbfile
-  in a read-only directory.  (See: https://github.com/HDFGroup/h5serv/issues/37)
-"""
+
 def getTempFileName():
     f = tempfile.NamedTemporaryFile(delete=False)
     f.close()

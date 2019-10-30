@@ -12,13 +12,6 @@ import logging.handlers
 
 from h5json import Hdf5db
 
-
-"""
-Writeh5 - return json representation of all objects within the given file
-    h5writer = Writeh5(db, h5json)
-        h5writer.writeFile()
-"""
-
 class Writeh5:
     def __init__(self, db, json, options=None):
         self.options = options
@@ -112,7 +105,6 @@ class Writeh5:
                 dims = ()  # empty tuple for scalar
         self.db.createAttribute(col_name, uuid, attr_name, dims, datatype, attr_value)
 
-
     #
     # create committed datatype HDF5 object
     #
@@ -120,9 +112,6 @@ class Writeh5:
         datatype = body['type']
         self.db.createCommittedType(datatype, obj_uuid=uuid)
 
-    #
-    # Create HDF5 group object  (links and attributes will be added later)
-    #
     def createGroup(self, uuid, body):
         if uuid != self.root_uuid:
             self.db.createGroup(obj_uuid=uuid)
@@ -150,12 +139,6 @@ class Writeh5:
                 json_obj = datasets[uuid]
                 self.createDataset(uuid, json_obj)
 
-
-    #
-    # Create all the attributes for HDF5 objects defined in the JSON file
-    # Note: this needs to be done after createObjects since an attribute
-    # may use a committed datatype
-    #
     def createAttributes(self):
         dimension_list_attrs = []  # track dimension list attributes
         # create datatype attributes
@@ -255,8 +238,6 @@ def main():
         h5writer = Writeh5(db, h5json)
         h5writer.writeFile()
 
-    # open with h5py and remove the _db_ group
-    # Note: this will delete any anonymous (un-linked) objects
     f = h5py.File(filename, 'a')
     if "__db__" in f:
         del f["__db__"]
