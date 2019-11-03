@@ -311,7 +311,7 @@ namespace WebApi.Controllers
                         foreach (links layer in layers)
                         {
                             //for (int it = 0; it < datasets.Count(); it++)//layer
-                            foreach (var it in datasets)
+                            foreach (var it in orderedDataset)
                             {
                                 if (layer.layerAlias == null) // && layers.ElementAtOrDefault(layers.IndexOf(layer) + 1)?.layerAlias != null
                                 {
