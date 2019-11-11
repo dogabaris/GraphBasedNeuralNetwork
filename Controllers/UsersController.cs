@@ -240,7 +240,7 @@ namespace WebApi.Controllers
                                     {
                                         for (long lay = 0; lay < 3; lay++)
                                         {
-                                            cypherQuery += string.Format("(`{0}` :{1} {{ workspace: '100', data: '0' }}),", id, layer.title);
+                                            cypherQuery += string.Format("(`{0}` :{1} {{ workspace: '100', data: '0' }}),", id, layer.title.Replace("/", "_").Replace(":", "_"));
 
                                             id++;
                                         }
@@ -252,13 +252,13 @@ namespace WebApi.Controllers
                                         {
                                             if (datasets.ElementAt(it).Value.alias[0] == "/" + layer.title + "/" + layerAlias)
                                             {
-                                                long nextNodeCount = 3;
-                                                if (datasets.ElementAt(it).Value.shape.dims.Count == 4)
+                                                long nextNodeCount = 3;//Kernel node u 1 tane atanıyordu yanlışlık düzeltildi.
+                                                if (datasets.ElementAt(it).Value.shape.dims.Count == 4 && datasets.ElementAt(it).Value.shape.dims[datasets.ElementAt(it).Value.shape.dims.Count - 3].Value != 1)
                                                     nextNodeCount = datasets.ElementAt(it).Value.shape.dims[datasets.ElementAt(it).Value.shape.dims.Count - 3].Value;
 
                                                 for (long lay = 0; lay < nextNodeCount; lay++)
                                                 {
-                                                    cypherQuery += string.Format("(`{0}` :{1} {{ workspace: '100', data: '0' }}),", id, layerAlias);
+                                                    cypherQuery += string.Format("(`{0}` :{1} {{ workspace: '100', data: '0' }}),", id, layerAlias.Replace("/", "_").Replace(":", "_"));
 
                                                     id++;
                                                 }
@@ -277,7 +277,7 @@ namespace WebApi.Controllers
 
                         //dataseti sıralayıp olmayan itemları da içeriye gömmek lazım ki sırasında bir önceki item
 
-                        foreach (var order in  orderList)
+                        foreach (var order in orderList)
                         {
                             foreach (var dItem in datasets)
                             {
@@ -288,7 +288,7 @@ namespace WebApi.Controllers
                                 }
                             }
 
-                            if (orderedDataset.Count(x => x.Value.alias[0].Value.Contains(order))==0)
+                            if (orderedDataset.Count(x => x.Value.alias[0].Value.Contains(order)) == 0)
                             {
                                 dynamic jsonObject = new JObject();
                                 var guid = Guid.NewGuid().ToString();
@@ -315,17 +315,17 @@ namespace WebApi.Controllers
                             {
                                 if (layer.layerAlias == null) // && layers.ElementAtOrDefault(layers.IndexOf(layer) + 1)?.layerAlias != null
                                 {
-                                    for (var dNodeIt = 0; dNodeIt < 3; dNodeIt++)
-                                    {
-                                        for (var dRelationIt = 0; dRelationIt < 3; dRelationIt++)
-                                        {
-                                            cypherQuery += string.Format("(`{0}`)-[:`related` {{  matrix: '{1}'}}]->(`{2}`),", id * layerCount, it.Value.value[dNodeIt][dRelationIt], nextLayerFirst + dRelationIt); //((3 + dRelationIt) * (layers.IndexOf(layer) + 1)) * layerCount  it layer için
-                                        }
-                                        id++;
-                                    }
-                                    nextLayerFirst += 3;
-                                    datasets.Remove(it);
-                                    break; //TODO: Break olunca it 0 lanıyor yanlış yere bakıyor. ***
+                                    //for (var dNodeIt = 0; dNodeIt < 3; dNodeIt++)
+                                    //{
+                                    //    for (var dRelationIt = 0; dRelationIt < 3; dRelationIt++)
+                                    //    {
+                                    //        cypherQuery += string.Format("(`{0}`)-[:`related` {{  matrix: '{1}'}}]->(`{2}`),", id * layerCount, it.Value.value[dNodeIt][dRelationIt], nextLayerFirst + dRelationIt); //((3 + dRelationIt) * (layers.IndexOf(layer) + 1)) * layerCount  it layer için
+                                    //    }
+                                    //    id++;
+                                    //}
+                                    //nextLayerFirst += 3;
+                                    //datasets.Remove(it);
+                                    //break; //TODO: Break olunca it 0 lanıyor yanlış yere bakıyor. ***
                                 }
                                 else
                                 {
@@ -337,39 +337,71 @@ namespace WebApi.Controllers
                                         {
                                             if (it.Value.shape.dims.Count == 4) //normal kernel, depthwise(dw) veya pointwisetır(pw) 
                                             {
-                                                for (var nodeIt = 0; nodeIt < it.Value.shape.dims[0].Value; nodeIt++)
+                                                if (it.Value.shape.dims[0].Value == 1 && it.Value.shape.dims[1].Value == 1)
                                                 {
-                                                    for (var relationIt = 0; relationIt < it.Value.shape.dims[1].Value; relationIt++)
+                                                    for (var nodeIt = 0; nodeIt < 3; nodeIt++)
                                                     {
-                                                        cypherQuery += string.Format("(`{0}`)-[:`related` {{  matrix: '{1}'}}]->(`{2}`),", id, it.Value.value[nodeIt][relationIt], nextLayerFirst + relationIt);
+                                                        for (var relationIt = 0; relationIt < 3; relationIt++) 
+                                                        {
+                                                            if (it.Value.shape.dims[1].Value != 3)
+                                                                cypherQuery += string.Format("(`{0}`)-[:`related` {{  matrix: '{1}'}}]->(`{2}`),", id, JsonConvert.SerializeObject(it.Value.value[0][0]), nextLayerFirst + relationIt);
+                                                            else
+                                                                cypherQuery += string.Format("(`{0}`)-[:`related` {{  matrix: '{1}'}}]->(`{2}`),", id, JsonConvert.SerializeObject(it.Value.value[0][0]), nextLayerFirst + relationIt);
+                                                        }
+                                                        id++;
+                                                    }
+                                                } else if (it.Value.shape.dims[0].Value == 3 && it.Value.shape.dims[1].Value == 3)
+                                                {
+                                                    for (var nodeIt = 0; nodeIt < it.Value.shape.dims[0].Value; nodeIt++)
+                                                    {
+                                                        for (var relationIt = 0; relationIt < it.Value.shape.dims[1].Value; relationIt++) 
+                                                        {
+                                                            if (it.Value.shape.dims[1].Value != 3)
+                                                                cypherQuery += string.Format("(`{0}`)-[:`related` {{  matrix: '{1}'}}]->(`{2}`),", id, JsonConvert.SerializeObject(it.Value.value[nodeIt][relationIt]), nextLayerFirst + relationIt);
+                                                            else
+                                                                cypherQuery += string.Format("(`{0}`)-[:`related` {{  matrix: '{1}'}}]->(`{2}`),", id, JsonConvert.SerializeObject(it.Value.value[nodeIt][relationIt]), nextLayerFirst + relationIt);
+                                                        }
+                                                        id++;
+                                                    }
+                                                }
+                                                
+                                                nextLayerFirst += 3;
+                                            }
+                                            if (it.Value.shape.dims.Count == 1) //layerı null olanlar
+                                            {
+                                                for (var nodeIt = 0; nodeIt < 3; nodeIt++)
+                                                {
+                                                    for (var relationIt = 0; relationIt < 3; relationIt++)
+                                                    {
+                                                        cypherQuery += string.Format("(`{0}`)-[:`related` {{  matrix: '{1}'}}]->(`{2}`),", id, JsonConvert.SerializeObject(it.Value.value), nextLayerFirst + relationIt);
                                                     }
                                                     id++;
                                                 }
                                                 nextLayerFirst += 3;
                                             }
-                                            datasets.Remove(it);
                                         }
                                     }
 
+                                    layerCount++;
                                 }
                             }
-
-                            layerCount++;
                         }
                     }
 
-                    //var response = string.Empty;
-                    //using (var client = new HttpClient())
-                    //{
-                    //    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", user.Token);
-                    //    var result = client.PostAsJsonAsync("http://" + Request.Host + "/users/createmodel", new CreateModel
-                    //    {
-                    //        cypherQuery = cypherQuery.TrimEnd(','),
-                    //        user = user
-                    //    }).Result;
-                    //    if (result.IsSuccessStatusCode)
-                    //        return Ok();
-                    //}
+                    System.IO.File.WriteAllText(@"C:\Users\Public\CnnCypherQuery.txt", cypherQuery);
+
+                    var response = string.Empty;
+                    using (var client = new HttpClient())
+                    {
+                        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", user.Token);
+                        var result = client.PostAsJsonAsync("http://" + Request.Host + "/users/createmodel", new CreateModel
+                        {
+                            cypherQuery = cypherQuery.TrimEnd(','),
+                            user = user
+                        }).Result;
+                        if (result.IsSuccessStatusCode)
+                            return Ok();
+                    }
 
                     return BadRequest();
                 }
@@ -583,22 +615,23 @@ namespace WebApi.Controllers
                     try
                     {
                         var cursor = await session.RunAsync(createModel.cypherQuery);
-                        var nodes = await cursor.MapAsync<BinaryNode>();
-                        resultJson = JsonConvert.SerializeObject(nodes);
+                        //var nodes = await cursor.MapAsync<BinaryNode>();
+                        //resultJson = JsonConvert.SerializeObject(nodes);
                     }
                     catch (Exception ex)
                     {
+                        System.IO.File.WriteAllText(@"C:\Users\Public\CnnCypherQueryERROR.txt", ex.ToString());
                         return BadRequest(ex);
                     }
                 }
 
-                if (string.IsNullOrWhiteSpace(resultJson))
-                    return BadRequest(resultJson);
+                //if (string.IsNullOrWhiteSpace(resultJson))
+                //    return BadRequest(resultJson);
 
-                var match = Regex.Match(createModel.cypherQuery, "(?<=workspace:')(.*?)(?=\')");
+                //var match = Regex.Match(createModel.cypherQuery, "(?<=workspace:')(.*?)(?=\')");
 
-                var res = _userService.CreateModel(match.Value, createModel.user);
-                return Ok(res);
+                //var res = _userService.CreateModel(match.Value, createModel.user);
+                return Ok(); //res
             }
             else
             {
