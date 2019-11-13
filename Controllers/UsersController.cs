@@ -196,7 +196,7 @@ namespace WebApi.Controllers
         [HttpPost("importcnnh5model")]
         public IActionResult ImportCnnH5Model([FromBody] User user)
         {
-            string cypherQuery = "CREATE (`999` :output {workspace:'100' }),";
+            string cypherQuery = "CREATE (`999` :output {workspace:'100'}),";
             var res = RunPython(@"h5tojson.py", "mobilenet_2_5_128_tf.h5");
             if (res)
             {
@@ -308,34 +308,55 @@ namespace WebApi.Controllers
                         }
 
                         //relationships
+                        links last = layers.Last();
                         foreach (links layer in layers)
                         {
                             //for (int it = 0; it < datasets.Count(); it++)//layer
                             foreach (var it in orderedDataset)
                             {
-                                if (layer.layerAlias == null) // && layers.ElementAtOrDefault(layers.IndexOf(layer) + 1)?.layerAlias != null
+                                if (layer.Equals(last))
                                 {
-                                    //for (var dNodeIt = 0; dNodeIt < 3; dNodeIt++)
-                                    //{
-                                    //    for (var dRelationIt = 0; dRelationIt < 3; dRelationIt++)
-                                    //    {
-                                    //        cypherQuery += string.Format("(`{0}`)-[:`related` {{  matrix: '{1}'}}]->(`{2}`),", id * layerCount, it.Value.value[dNodeIt][dRelationIt], nextLayerFirst + dRelationIt); //((3 + dRelationIt) * (layers.IndexOf(layer) + 1)) * layerCount  it layer için
-                                    //    }
-                                    //    id++;
-                                    //}
-                                    //nextLayerFirst += 3;
-                                    //datasets.Remove(it);
-                                    //break; //TODO: Break olunca it 0 lanıyor yanlış yere bakıyor. ***
-                                }
-                                else
-                                {
-                                    //TODO: conv_preds e dikkat edilecek 2 boyutlu tek boyutlu yerlere dönüyor.
+                                    for (var nodeIt = 0; nodeIt < 3; nodeIt++)
+                                    {
+                                        for (var relationIt = 0; relationIt < 3; relationIt++)
+                                        {
+                                            cypherQuery += string.Format("(`{0}`)-[:`related` {{matrix: 1 }}]->(`{1}`),", id, nextLayerFirst + relationIt);
+                                        }
+                                        id++;
+                                    }
+                                    nextLayerFirst += 3;
 
+                                    for (var nodeIt = 0; nodeIt < 3; nodeIt++)
+                                    {
+                                        for (var relationIt = 0; relationIt < 3; relationIt++)
+                                        {
+                                            cypherQuery += string.Format("(`{0}`)-[:`related` {{matrix: 1 }}]->(`999`),", id);
+                                        }
+                                        id++;
+                                    }
+                                    nextLayerFirst += 3;
+                                    break;
+                                }
+                                else if (layer.layerAlias == null && layer.title != "input_1")
+                                {
+                                    for (var nodeIt = 0; nodeIt < 3; nodeIt++)
+                                    {
+                                        for (var relationIt = 0; relationIt < 3; relationIt++)
+                                        {
+                                            cypherQuery += string.Format("(`{0}`)-[:`related` {{matrix: 1 }}]->(`{1}`),", id, nextLayerFirst + relationIt);
+                                        }
+                                        id++;
+                                    }
+                                    nextLayerFirst += 3;
+                                    break;
+                                }
+                                else if (layer.layerAlias != null)
+                                {
                                     foreach (var lyrAlias in layer.layerAlias)
                                     {
-                                        if (it.Value.alias[0] == "/" + layer.title + "/" + lyrAlias) // layer.layerAlias[0]
+                                        if (it.Value.alias[0] == "/" + layer.title + "/" + lyrAlias)
                                         {
-                                            if (it.Value.shape.dims.Count == 4) //normal kernel, depthwise(dw) veya pointwisetır(pw) 
+                                            if (it.Value.shape.dims.Count == 4)
                                             {
                                                 if (it.Value.shape.dims[0].Value == 1 && it.Value.shape.dims[1].Value == 1)
                                                 {
@@ -344,9 +365,9 @@ namespace WebApi.Controllers
                                                         for (var relationIt = 0; relationIt < 3; relationIt++) 
                                                         {
                                                             if (it.Value.shape.dims[1].Value != 3)
-                                                                cypherQuery += string.Format("(`{0}`)-[:`related` {{  matrix: '{1}'}}]->(`{2}`),", id, JsonConvert.SerializeObject(it.Value.value[0][0]), nextLayerFirst + relationIt);
+                                                                cypherQuery += string.Format("(`{0}`)-[:`related` {{matrix: '{1}'}}]->(`{2}`),", id, JsonConvert.SerializeObject(it.Value.value[0][0]), nextLayerFirst + relationIt);
                                                             else
-                                                                cypherQuery += string.Format("(`{0}`)-[:`related` {{  matrix: '{1}'}}]->(`{2}`),", id, JsonConvert.SerializeObject(it.Value.value[0][0]), nextLayerFirst + relationIt);
+                                                                cypherQuery += string.Format("(`{0}`)-[:`related` {{matrix: '{1}'}}]->(`{2}`),", id, JsonConvert.SerializeObject(it.Value.value[0][0]), nextLayerFirst + relationIt);
                                                         }
                                                         id++;
                                                     }
@@ -357,9 +378,9 @@ namespace WebApi.Controllers
                                                         for (var relationIt = 0; relationIt < it.Value.shape.dims[1].Value; relationIt++) 
                                                         {
                                                             if (it.Value.shape.dims[1].Value != 3)
-                                                                cypherQuery += string.Format("(`{0}`)-[:`related` {{  matrix: '{1}'}}]->(`{2}`),", id, JsonConvert.SerializeObject(it.Value.value[nodeIt][relationIt]), nextLayerFirst + relationIt);
+                                                                cypherQuery += string.Format("(`{0}`)-[:`related` {{matrix: '{1}'}}]->(`{2}`),", id, JsonConvert.SerializeObject(it.Value.value[nodeIt][relationIt]), nextLayerFirst + relationIt);
                                                             else
-                                                                cypherQuery += string.Format("(`{0}`)-[:`related` {{  matrix: '{1}'}}]->(`{2}`),", id, JsonConvert.SerializeObject(it.Value.value[nodeIt][relationIt]), nextLayerFirst + relationIt);
+                                                                cypherQuery += string.Format("(`{0}`)-[:`related` {{matrix: '{1}'}}]->(`{2}`),", id, JsonConvert.SerializeObject(it.Value.value[nodeIt][relationIt]), nextLayerFirst + relationIt);
                                                         }
                                                         id++;
                                                     }
