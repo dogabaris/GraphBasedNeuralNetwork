@@ -25,6 +25,7 @@ using System.Net.Http.Headers;
 using ServiceStack.Text;
 using Neo4jClient;
 using Microsoft.EntityFrameworkCore.Internal;
+using System.Threading.Tasks;
 
 namespace WebApi.Controllers
 {
@@ -588,37 +589,41 @@ namespace WebApi.Controllers
                 int attemptCount = 0;
                 while (true)
                 {
-
                     int errorCount = 0;
                     var exceptedResult = outputPerceptron.Find(o => o.expectedoutput != null).expectedoutput;
-
-                    var output = perceptron.LearnAsync(exceptedResult.Value, inputPerceptron);
-
-                    if (output.Result != exceptedResult)
+                    try
                     {
-                        var inpList = inputPerceptron.Select(inp => inp.data.ToString()).ToList();
-                        inpList.Add(output.Result.ToString());
-                        var data = String.Join(", ", inpList);
-                        returnJson.Add(String.Format("Fail {0}", attemptCount), data);
-                        errorCount++;
-                    }
-                    else
-                    {
-                        var inpList = inputPerceptron.Select(inp => inp.data.ToString()).ToList();
-                        inpList.Add(output.Result.ToString());
-                        var data = String.Join(", ", inpList);
-                        returnJson.Add(String.Format("Pass {0}", attemptCount), data);
-                    }
+                        var output = await perceptron.LearnAsync(exceptedResult.Value, inputPerceptron);
 
-                    if (errorCount == 0)
-                    {
-                        var cursor = await session.RunAsync(@"MATCH(h:hidden {workspace:'" + model + "'})-[r]-(o:output) " +
-                            "set r.weight = " + Convert.ToInt32(output.Result) +
-                            ", o.data = " + Convert.ToInt32(output.Result) +
-                            " return h,r,o");
-                        return Ok(returnJson);
-                    }
+                        if (output != exceptedResult)
+                        {
+                            var inpList = inputPerceptron.Select(inp => inp.data.ToString()).ToList();
+                            inpList.Add(output.ToString());
+                            var data = String.Join(", ", inpList);
+                            returnJson.Add(String.Format("Fail {0}", attemptCount), data);
+                            errorCount++;
+                        }
+                        else
+                        {
+                            var inpList = inputPerceptron.Select(inp => inp.data.ToString()).ToList();
+                            inpList.Add(output.ToString());
+                            var data = String.Join(", ", inpList);
+                            returnJson.Add(String.Format("Pass {0}", attemptCount), data);
+                        }
 
+                        if (errorCount == 0)
+                        {
+                            var cursor = await session.RunAsync(@"MATCH(h:hidden {workspace:'" + model + "'})-[r]-(o:output) " +
+                                "set r.weight = " + Convert.ToInt32(output) +
+                                ", o.data = " + Convert.ToInt32(output) +
+                                " return h,r,o");
+                            return Ok(returnJson);
+                        }
+                    }
+                    catch(Exception ex)
+                    {
+                        return BadRequest(returnJson);
+                    }
                 }
 
             }
@@ -649,9 +654,9 @@ namespace WebApi.Controllers
                 //if (string.IsNullOrWhiteSpace(resultJson))
                 //    return BadRequest(resultJson);
 
-                //var match = Regex.Match(createModel.cypherQuery, "(?<=workspace:')(.*?)(?=\')");
+                var match = Regex.Match(createModel.cypherQuery, "(?<=workspace:')(.*?)(?=\')");
 
-                //var res = _userService.CreateModel(match.Value, createModel.user);
+                var res = _userService.CreateModel(match.Value, createModel.user);
                 return Ok(); //res
             }
             else

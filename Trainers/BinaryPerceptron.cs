@@ -4,6 +4,7 @@ using Neo4jMapper;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using WebApi.Entities.Neo4j;
@@ -46,17 +47,23 @@ namespace WebApi.Trainers
 
         public async Task RefreshWeightsAsync()
         {
-            using (var session = _driver.Session())
+            try
             {
-                Weights = Client
-                        .Cypher
-                        .Match("(i:input {workspace:'" + Workspace + "'})-[r:related]-(h:hidden)")
-                        .Return((r) =>
-                            new
-                            {
-                                Weight = r.As<Weight>()
-                            })
-                        .Results.Select(x => x.Weight.weight).ToArray();
+                using (var session = _driver.Session())
+                {
+                    Weights = Client
+                            .Cypher
+                            .Match("(i:input {workspace:'" + Workspace + "'})-[r:related]-(h:hidden)")
+                            .Return((r) =>
+                                new
+                                {
+                                    Weight = r.As<Weight>()
+                                })
+                            .Results.Select(x => x.Weight.weight).ToArray();
+                }
+            }catch(Exception ex)
+            {
+                return;
             }
         }
 
@@ -65,8 +72,7 @@ namespace WebApi.Trainers
             // get the result
             var inputArray = inputs.Select(inp => inp.data).ToArray();
             bool result = GetResult(inputArray);
-
-            // if the result does not match expected
+            
             if (result != expectedResult)
             {
                 // calculate error (need to convert boolean to a number)
@@ -75,21 +81,13 @@ namespace WebApi.Trainers
                 {
                     using (var session = _driver.Session())
                     {
-                        var parameters = new Dictionary<string, object>
-                        {
-                          {"updatedWeight", LearningRate * error * input.data}
-                        };
-
                         try
                         {
-                            var cursor = session.Run(@"Start i=NODE(" + input.id + ") " +
-                            "MATCH(i:input)-[r]-(h:hidden) " +
-                            "SET r.weight = r.weight + $updatedWeight " +
-                            "RETURN i,r,h", parameters);
+                            var cursor = session.Run(String.Format("Start i=NODE({0}) MATCH(i:input)-[r]-(h:hidden) SET r.weight = r.weight + {1} RETURN i,r,h", input.id, (LearningRate * error * input.data).ToString(CultureInfo.InvariantCulture)));
 
                             await RefreshWeightsAsync();
                         }
-                        catch(Exception ex)
+                        catch (Exception ex)
                         {
                             break;
                         }
