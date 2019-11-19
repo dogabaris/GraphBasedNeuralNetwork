@@ -26,6 +26,7 @@ export class HomeComponent implements OnInit {
   interval: any;
   showTrainTools = false;
   selectedModel: any;
+  isPause = false;
 
   constructor(private userService: UserService, @Inject(DOCUMENT) private document: Document, private toastr: ToastrService
     , private cdRef: ChangeDetectorRef) { }
@@ -141,6 +142,11 @@ export class HomeComponent implements OnInit {
     this.viz.render();
     console.log(this.viz);
 
+    this.startRefreshInterval();
+  }
+
+  startRefreshInterval() {
+    this.isPause = false;
     this.interval = setInterval(() => {
       this.refreshViewModel();
     }, 2000);
@@ -153,6 +159,7 @@ export class HomeComponent implements OnInit {
   }
 
   cancelRefreshOfViewModel() {
+    this.isPause = true;
     if (this.interval) {
       clearInterval(this.interval);
     }
