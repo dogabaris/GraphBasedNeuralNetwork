@@ -167,6 +167,8 @@ namespace WebApi.Controllers
                         }
                     }
 
+                    System.IO.File.WriteAllText(@"C:\Users\Public\CnnFeedforwardCypherQuery.txt", cypherQuery);
+
                     var response = string.Empty;
                     using (var client = new HttpClient())
                     {
@@ -363,7 +365,7 @@ namespace WebApi.Controllers
                                                 {
                                                     for (var nodeIt = 0; nodeIt < 3; nodeIt++)
                                                     {
-                                                        for (var relationIt = 0; relationIt < 3; relationIt++) 
+                                                        for (var relationIt = 0; relationIt < 3; relationIt++)
                                                         {
                                                             if (it.Value.shape.dims[1].Value != 3)
                                                                 cypherQuery += string.Format("(`{0}`)-[:`related` {{matrix: '{1}'}}]->(`{2}`),", id, JsonConvert.SerializeObject(it.Value.value[0][0]), nextLayerFirst + relationIt);
@@ -372,11 +374,12 @@ namespace WebApi.Controllers
                                                         }
                                                         id++;
                                                     }
-                                                } else if (it.Value.shape.dims[0].Value == 3 && it.Value.shape.dims[1].Value == 3)
+                                                }
+                                                else if (it.Value.shape.dims[0].Value == 3 && it.Value.shape.dims[1].Value == 3)
                                                 {
                                                     for (var nodeIt = 0; nodeIt < it.Value.shape.dims[0].Value; nodeIt++)
                                                     {
-                                                        for (var relationIt = 0; relationIt < it.Value.shape.dims[1].Value; relationIt++) 
+                                                        for (var relationIt = 0; relationIt < it.Value.shape.dims[1].Value; relationIt++)
                                                         {
                                                             if (it.Value.shape.dims[1].Value != 3)
                                                                 cypherQuery += string.Format("(`{0}`)-[:`related` {{matrix: '{1}'}}]->(`{2}`),", id, JsonConvert.SerializeObject(it.Value.value[nodeIt][relationIt]), nextLayerFirst + relationIt);
@@ -386,7 +389,7 @@ namespace WebApi.Controllers
                                                         id++;
                                                     }
                                                 }
-                                                
+
                                                 nextLayerFirst += 3;
                                             }
                                             if (it.Value.shape.dims.Count == 1) //layerı null olanlar
@@ -410,7 +413,7 @@ namespace WebApi.Controllers
                         }
                     }
 
-                    System.IO.File.WriteAllText(@"C:\Users\Public\CnnCypherQuery.txt", cypherQuery);
+                    System.IO.File.WriteAllText(@"C:\Users\Public\CnnImagenetCypherQuery.txt", cypherQuery);
 
                     var response = string.Empty;
                     using (var client = new HttpClient())
@@ -620,13 +623,88 @@ namespace WebApi.Controllers
                             return Ok(returnJson);
                         }
                     }
-                    catch(Exception ex)
+                    catch (Exception ex)
                     {
                         return BadRequest(returnJson);
                     }
                 }
 
             }
+        }
+
+        [HttpPost("testmodel")]
+        public async Task<IActionResult> TestModel([FromBody] TestModel testModel)
+        {
+            var nodeIds = new List<int>();
+
+            //idleri topluyor.
+            using (var session = _driver.Session())
+            {
+                try
+                {
+                    var cursor = await session.RunAsync(@"MATCH(n)                                                          WHERE n.workspace = '" + testModel.workspace +
+                                                          "' RETURN id(n)");
+
+                    nodeIds = (await cursor.ToListAsync())
+                                            .Map<int>().ToList();
+                }
+                catch (Exception ex)
+                {
+                    return BadRequest(ex);
+                }
+            }
+
+            //giriş datalarını yazıyor.
+            var it = 0;
+            foreach (var id in nodeIds)
+            {
+                if (id == nodeIds.First())
+                { }
+                else
+                {
+                    using (var session = _driver.Session())
+                    {
+                        try
+                        {
+                            var cursor = await session.RunAsync(String.Format("Start n=NODE({0}) MATCH(n)-[r]->(n2) SET n.data = {1}", id, testModel.nodeDatas.GetValue(it)));
+                        }
+                        catch (Exception ex)
+                        {
+                            return BadRequest(ex);
+                        }
+                    }
+                    it++;
+
+                    if (it >= testModel.nodeDatas.Count())
+                        break;
+                }
+            }
+
+            foreach (var id in nodeIds)
+            {
+                if (id == nodeIds.First())
+                {
+
+                }
+                else
+                {
+                    using (var session = _driver.Session())
+                    {
+                        try
+                        {
+                            var cursor = session.Run(String.Format("Start n=NODE({0}) MATCH(n)-[r]->(n2) SET n2.data = n2.data + ((n.data * r.kernel) + r.bias) RETURN n,r,n2", id));
+
+                        }
+                        catch (Exception ex)
+                        {
+                            break;
+                        }
+                    }
+                }
+
+            }
+
+            return Ok();
         }
 
         [HttpPost("createmodel")]

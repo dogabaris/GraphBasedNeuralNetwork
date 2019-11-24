@@ -53,6 +53,17 @@ export class UserService {
     return this.http.get<Workspace[]>(`${config.apiUrl}/users/getallworkspaces`, { params: params });
   }
 
+  testModel(selectedModel: any, nodeDatas: Array<number>) {
+    console.log("testModel fired", selectedModel, nodeDatas);
+    var user = JSON.parse(localStorage.getItem('currentUser'));
+    if (user && user.token) {
+      return this.http.post(`${config.apiUrl}/users/testmodel`, { "user": user, "workspace": selectedModel, "nodeDatas": nodeDatas });
+    }
+    else {
+      this.toastr.error("Giriş yapın!");
+    }
+  }
+
   createModel(cypherQuery: any) {
     console.log("exportCypher fired");
     var user = JSON.parse(localStorage.getItem('currentUser'));

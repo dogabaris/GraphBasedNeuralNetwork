@@ -13,7 +13,7 @@ namespace WebApi.Helpers
 
         public static GraphClient ConnectDb()
         {
-            var client = new GraphClient(new Uri("http://localhost:7474/db/data"), "neo4j", "password");
+            var client = new GraphClient(new Uri("http://localhost:11001/db/data"), "neo4j", "password");
             client.Connect();
             Console.WriteLine(client.IsConnected ? "Neo4j DB Connected!" : "Neo4j DB Not Connected!!!");
             return client;

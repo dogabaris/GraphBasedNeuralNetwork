@@ -17,7 +17,7 @@ export class HomeComponent implements OnInit {
   workspaces: any = [];
   exportCypherModel: string;
   @ViewChild('exportCypherEl', null) exportCypherEl: ElementRef;
-
+  
   emptyObj1: any;
   emptyObj: any;
   info: any;
@@ -27,8 +27,13 @@ export class HomeComponent implements OnInit {
   showTrainTools = false;
   selectedModel: any;
   isPause = false;
+  openTestModel = false;
 
-  constructor(private userService: UserService, @Inject(DOCUMENT) private document: Document, private toastr: ToastrService
+  testNode1 = 0;
+  testNode2 = 0;
+  testNode3 = 0;
+
+  constructor(private userService: UserService, private modalService: NgbModal, @Inject(DOCUMENT) private document: Document, private toastr: ToastrService
     , private cdRef: ChangeDetectorRef) { }
 
   ngOnInit() {
@@ -39,6 +44,28 @@ export class HomeComponent implements OnInit {
     this.userService.getAllWorkspaces().pipe(first()).subscribe(workspaces => {
       this.workspaces = workspaces;
     });
+  }
+
+  testModelPopup(content: any) {
+    this.openTestModel = !this.openTestModel;
+  }
+
+  testModel() {
+    var dataNodes = new Array<number>();
+    dataNodes.push(this.testNode1);
+    dataNodes.push(this.testNode2);
+    dataNodes.push(this.testNode3);
+
+    this.userService.testModel(this.selectedModel, dataNodes).pipe(first()).subscribe(
+      res => {
+        console.log(res);
+        this.showSuccess("Model test edildi!");
+      },
+      err => {
+        console.log("Error occured");
+        this.showError("Model test edilirken sorun oluştu!");
+      }
+    );
   }
 
   newModel() {
@@ -66,6 +93,7 @@ export class HomeComponent implements OnInit {
       this.showSuccess("Model başarıyla aktarıldı!");
     },
       err => {
+        console.log(err);
         console.log("Error occured!");
         this.showError("Model aktarılırken sorun oluştu!");
       });
@@ -100,14 +128,14 @@ export class HomeComponent implements OnInit {
     this.showTrainTools = true;
     this.selectedModel = modelName;
 
-    const url = 'bolt://localhost:7687';
+    const url = 'bolt://localhost:11002';
     const username = 'neo4j';
     const password = 'password';
     const encrypted = true;
 
     var config = {
       container_id: "viz",
-      server_url: "bolt://localhost:7687",
+      server_url: "bolt://localhost:11002",
       server_user: "neo4j",
       server_password: "password",
       labels: {
@@ -131,7 +159,8 @@ export class HomeComponent implements OnInit {
         }
       },
 
-      initial_cypher: "start n=node(*), r=relationship(*) match(n) where(n.workspace = '" + modelName + "') return n,r",
+      initial_cypher: "match (n)-[r:related]->(e)  where(n.workspace = '" + modelName + "') return n,r,e",
+        //"start n=node(*), r=relationship(*) match(n) where(n.workspace = '" + modelName + "') return n,r",
       arrows: true,
       hierarchical: true,
       //hierarchical_layout: true,

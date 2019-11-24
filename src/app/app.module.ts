@@ -3,8 +3,9 @@ import { BrowserModule } from '@angular/platform-browser';
 import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { MatToolbarModule, MatIconModule, MatSidenavModule, MatListModule, MatButtonModule } from '@angular/material';
+import { MatToolbarModule, MatIconModule, MatSidenavModule, MatListModule, MatButtonModule} from '@angular/material';
 import { ToastrModule } from 'ngx-toastr';
+import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 
 // used to create fake backend
 import { fakeBackendProvider } from './_helpers';
@@ -30,6 +31,7 @@ import { RegisterComponent } from './register';
     MatButtonModule,
     MatIconModule,
     FormsModule,
+    NgbModule,
     ToastrModule.forRoot()
   ],
   declarations: [

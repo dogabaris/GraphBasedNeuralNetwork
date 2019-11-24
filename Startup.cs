@@ -34,7 +34,7 @@ namespace WebApi
             var appSettingsSection = Configuration.GetSection("AppSettings");
             services.Configure<AppSettings>(appSettingsSection);
 
-            services.AddSingleton(GraphDatabase.Driver("bolt://localhost:7687", AuthTokens.Basic("neo4j", "password"))); //7474
+            services.AddSingleton(GraphDatabase.Driver("bolt://localhost:11002", AuthTokens.Basic("neo4j", "password"))); //7474
 
             services.AddDbContext<AppDbContext>(options =>
                 options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
