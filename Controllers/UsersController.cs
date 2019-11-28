@@ -26,6 +26,7 @@ using ServiceStack.Text;
 using Neo4jClient;
 using Microsoft.EntityFrameworkCore.Internal;
 using System.Threading.Tasks;
+using System.Globalization;
 
 namespace WebApi.Controllers
 {
@@ -59,11 +60,12 @@ namespace WebApi.Controllers
             return Ok(user);
         }
 
+        //TODO: STRING dataları sayıya çevir
         [AllowAnonymous]
         [HttpPost("importh5model")]
         public IActionResult ImportH5Model([FromBody] User user)
         {
-            string cypherQuery = "CREATE (`6` :output {workspace:'99'}),";
+            string cypherQuery = "CREATE ";
             var res = RunPython(@"h5tojson.py", "demo_model.h5");
             if (res)
             {
@@ -99,12 +101,12 @@ namespace WebApi.Controllers
                                         //input kernelin array eleman sayısı kadar input, arrayin ilk elemanındaki eleman sayısı kadar hidden node u vardır
                                         for (int inp = 0; inp < numberOfInput; inp++)
                                         {
-                                            cypherQuery += string.Format("(`{0}` :input {1}),", inp, "{ workspace: '99', data: '0'}");
+                                            cypherQuery += string.Format("(`{0}` :input {1}),", inp, "{ workspace: '99', data: 0}");
                                         }
                                         //hidden
                                         for (int hid = numberOfInput; hid < numberOfInput + numberOfHidden; hid++)
                                         {
-                                            cypherQuery += string.Format("(`{0}` :hidden {1}),", hid, "{ workspace: '99', data: '0'}");
+                                            cypherQuery += string.Format("(`{0}` :hidden {1}),", hid, "{ workspace: '99', data: 0}");
                                         }
                                     }
                                     else
@@ -113,6 +115,8 @@ namespace WebApi.Controllers
 
                             }
                         }
+
+                        cypherQuery += "(`6` :output { workspace: '99', data: 0}),";
 
                         //relationships 12 link olmalı 
                         foreach (links layer in layers)
@@ -145,7 +149,7 @@ namespace WebApi.Controllers
                                         {
                                             for (int y = 0; y < datasets.ElementAt(it).Value.value[x].Count; y++) //kernel eleman
                                             {
-                                                cypherQuery += string.Format("(`{0}`)-[:`related` {{ kernel: '{1}', bias: '{2}'}}]->(`{3}`),", x + factor, datasets.ElementAt(it).Value.value[x][y].Value, bias[0], nodeNumber - 1); //Output noduna bağlantı yapılıyor. , bias: '{2}'
+                                                cypherQuery += string.Format("(`{0}`)-[:`related` {{ kernel: {1}, bias: {2}}}]->(`{3}`),", x + factor, datasets.ElementAt(it).Value.value[x][y].Value.ToString(CultureInfo.InvariantCulture), bias[0].Value<string>(), nodeNumber - 1); //Output noduna bağlantı yapılıyor. , bias: '{2}'
                                             }
                                         }
                                     }
@@ -156,7 +160,7 @@ namespace WebApi.Controllers
                                             var iterator = 0;
                                             for (int y = 0; y < datasets.ElementAt(it).Value.value[x].Count; y++) //kernel eleman
                                             {
-                                                cypherQuery += string.Format("(`{0}`)-[:`related` {{ kernel: '{1}', bias: '{2}'}}]->(`{3}`),", x, datasets.ElementAt(it).Value.value[x][y].Value, bias[x], datasets.ElementAt(it).Value.value[x].Count + iterator); //, bias: '{2}'
+                                                cypherQuery += string.Format("(`{0}`)-[:`related` {{ kernel: {1}, bias: {2}}}]->(`{3}`),", x, datasets.ElementAt(it).Value.value[x][y].Value.ToString(CultureInfo.InvariantCulture), bias[x].Value<string>(), datasets.ElementAt(it).Value.value[x].Count + iterator); //, bias: '{2}'
                                                 iterator++;
                                             }
                                         }
@@ -176,7 +180,8 @@ namespace WebApi.Controllers
                         var result = client.PostAsJsonAsync("http://" + Request.Host + "/users/createmodel", new CreateModel
                         {
                             cypherQuery = cypherQuery.TrimEnd(','),
-                            user = user
+                            user = user,
+                            workspace = "99"
                         }).Result;
                         if (result.IsSuccessStatusCode)
                             return Ok();
@@ -654,61 +659,62 @@ namespace WebApi.Controllers
                 }
             }
 
+            //önceki verileri temizliyor
+            using (var session = _driver.Session())
+            {
+                try
+                {
+                    var cursor = await session.RunAsync(String.Format("MATCH(n) WHERE n.workspace = '{0}' SET n.data = 0", testModel.workspace));
+                }
+                catch (Exception ex)
+                {
+                    return BadRequest(ex);
+                }
+            }
+
             //giriş datalarını yazıyor.
             var it = 0;
             foreach (var id in nodeIds)
             {
-                if (id == nodeIds.First())
-                { }
-                else
+                using (var session = _driver.Session())
                 {
-                    using (var session = _driver.Session())
+                    try
                     {
-                        try
-                        {
-                            var cursor = await session.RunAsync(String.Format("Start n=NODE({0}) MATCH(n)-[r]->(n2) SET n.data = {1}", id, testModel.nodeDatas.GetValue(it)));
-                        }
-                        catch (Exception ex)
-                        {
-                            return BadRequest(ex);
-                        }
+                        var cursor = await session.RunAsync(String.Format("Start n=NODE({0}) MATCH(n)-[r]->(n2) SET n.data = {1}", id, testModel.nodeDatas.GetValue(it)));
                     }
-                    it++;
-
-                    if (it >= testModel.nodeDatas.Count())
-                        break;
+                    catch (Exception ex)
+                    {
+                        return BadRequest(ex);
+                    }
                 }
+                it++;
+
+                if (it >= testModel.nodeDatas.Count())
+                    break;
             }
 
+            //test ediyor
             foreach (var id in nodeIds)
             {
-                if (id == nodeIds.First())
+                using (var session = _driver.Session())
                 {
-
-                }
-                else
-                {
-                    using (var session = _driver.Session())
+                    try
                     {
-                        try
-                        {
-                            var cursor = session.Run(String.Format("Start n=NODE({0}) MATCH(n)-[r]->(n2) SET n2.data = n2.data + ((n.data * r.kernel) + r.bias) RETURN n,r,n2", id));
+                        var cursor = session.Run(String.Format("Start n=NODE({0}) MATCH(n)-[r]->(n2) SET n2.data = n2.data + ((n.data * r.kernel) + r.bias) RETURN n,r,n2", id));
 
-                        }
-                        catch (Exception ex)
-                        {
-                            break;
-                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        break;
                     }
                 }
-
             }
 
             return Ok();
         }
 
         [HttpPost("createmodel")]
-        public async System.Threading.Tasks.Task<IActionResult> CreateModelAsync([FromBody] CreateModel createModel) //[FromBody] string cypherQuery
+        public async Task<IActionResult> CreateModelAsync([FromBody] CreateModel createModel) //[FromBody] string cypherQuery
         {
             var resultJson = "";
 
@@ -732,9 +738,14 @@ namespace WebApi.Controllers
                 //if (string.IsNullOrWhiteSpace(resultJson))
                 //    return BadRequest(resultJson);
 
-                var match = Regex.Match(createModel.cypherQuery, "(?<=workspace:')(.*?)(?=\')");
+                var workspace = "";
 
-                var res = _userService.CreateModel(match.Value, createModel.user);
+                if (createModel.workspace == null)
+                    workspace = Regex.Match(createModel.cypherQuery, "(?<=workspace:')(.*?)(?=\')")?.Value ?? "";
+                else
+                    workspace = createModel.workspace;
+
+                var res = _userService.CreateModel(workspace, createModel.user);
                 return Ok(); //res
             }
             else

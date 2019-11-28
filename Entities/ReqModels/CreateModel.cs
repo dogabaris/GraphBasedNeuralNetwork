@@ -9,5 +9,6 @@ namespace WebApi.Entities.ReqModels
     {
         public User user { get; set; }
         public string cypherQuery { get; set; }
+        public string workspace { get; set; }
     }
 }

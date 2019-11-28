@@ -33,7 +33,7 @@ export class HomeComponent implements OnInit {
   testNode2 = 0;
   testNode3 = 0;
 
-  constructor(private userService: UserService, private modalService: NgbModal, @Inject(DOCUMENT) private document: Document, private toastr: ToastrService
+  constructor(private userService: UserService, @Inject(DOCUMENT) private document: Document, private toastr: ToastrService
     , private cdRef: ChangeDetectorRef) { }
 
   ngOnInit() {
