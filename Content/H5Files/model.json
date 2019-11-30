@@ -1,7 +1,7 @@
 {
     "apiVersion": "1.1.1", 
     "datasets": {
-        "7c41bff0-1149-11ea-886b-7c67a222132e": {
+        "d8a0eb00-13be-11ea-9ab9-7c67a222132e": {
             "alias": [
                 "/dense/dense/bias:0"
             ], 
@@ -28,7 +28,7 @@
                 1.9893282651901245
             ]
         }, 
-        "7c41bff1-1149-11ea-9796-7c67a222132e": {
+        "d8a0eb01-13be-11ea-b4e4-7c67a222132e": {
             "alias": [
                 "/dense/dense/kernel:0"
             ], 
@@ -68,7 +68,7 @@
                 ]
             ]
         }, 
-        "7c420e11-1149-11ea-9966-7c67a222132e": {
+        "d8a1391e-13be-11ea-9bf5-7c67a222132e": {
             "alias": [
                 "/dense_1/dense_1/bias:0"
             ], 
@@ -93,7 +93,7 @@
                 -0.11695151031017303
             ]
         }, 
-        "7c420e12-1149-11ea-bce4-7c67a222132e": {
+        "d8a1391f-13be-11ea-a259-7c67a222132e": {
             "alias": [
                 "/dense_1/dense_1/kernel:0"
             ], 
@@ -129,7 +129,7 @@
         }
     }, 
     "groups": {
-        "7c4123b0-1149-11ea-9219-7c67a222132e": {
+        "d89eef30-13be-11ea-b427-7c67a222132e": {
             "alias": [
                 "/"
             ], 
@@ -184,18 +184,18 @@
                 {
                     "class": "H5L_TYPE_HARD", 
                     "collection": "groups", 
-                    "id": "7c4171cf-1149-11ea-a966-7c67a222132e", 
+                    "id": "d8a09cde-13be-11ea-b9b7-7c67a222132e", 
                     "title": "dense"
                 }, 
                 {
                     "class": "H5L_TYPE_HARD", 
                     "collection": "groups", 
-                    "id": "7c41e700-1149-11ea-8ae0-7c67a222132e", 
+                    "id": "d8a1120f-13be-11ea-8993-7c67a222132e", 
                     "title": "dense_1"
                 }
             ]
         }, 
-        "7c4171cf-1149-11ea-a966-7c67a222132e": {
+        "d8a09cde-13be-11ea-b9b7-7c67a222132e": {
             "alias": [
                 "/dense"
             ], 
@@ -224,12 +224,12 @@
                 {
                     "class": "H5L_TYPE_HARD", 
                     "collection": "groups", 
-                    "id": "7c4198e1-1149-11ea-b78d-7c67a222132e", 
+                    "id": "d8a0c3ee-13be-11ea-a370-7c67a222132e", 
                     "title": "dense"
                 }
             ]
         }, 
-        "7c4198e1-1149-11ea-b78d-7c67a222132e": {
+        "d8a0c3ee-13be-11ea-a370-7c67a222132e": {
             "alias": [
                 "/dense/dense"
             ], 
@@ -237,18 +237,18 @@
                 {
                     "class": "H5L_TYPE_HARD", 
                     "collection": "datasets", 
-                    "id": "7c41bff0-1149-11ea-886b-7c67a222132e", 
+                    "id": "d8a0eb00-13be-11ea-9ab9-7c67a222132e", 
                     "title": "bias:0"
                 }, 
                 {
                     "class": "H5L_TYPE_HARD", 
                     "collection": "datasets", 
-                    "id": "7c41bff1-1149-11ea-9796-7c67a222132e", 
+                    "id": "d8a0eb01-13be-11ea-b4e4-7c67a222132e", 
                     "title": "kernel:0"
                 }
             ]
         }, 
-        "7c41e700-1149-11ea-8ae0-7c67a222132e": {
+        "d8a1120f-13be-11ea-8993-7c67a222132e": {
             "alias": [
                 "/dense_1"
             ], 
@@ -277,12 +277,12 @@
                 {
                     "class": "H5L_TYPE_HARD", 
                     "collection": "groups", 
-                    "id": "7c41e701-1149-11ea-a5d5-7c67a222132e", 
+                    "id": "d8a11210-13be-11ea-8863-7c67a222132e", 
                     "title": "dense_1"
                 }
             ]
         }, 
-        "7c41e701-1149-11ea-a5d5-7c67a222132e": {
+        "d8a11210-13be-11ea-8863-7c67a222132e": {
             "alias": [
                 "/dense_1/dense_1"
             ], 
@@ -290,17 +290,17 @@
                 {
                     "class": "H5L_TYPE_HARD", 
                     "collection": "datasets", 
-                    "id": "7c420e11-1149-11ea-9966-7c67a222132e", 
+                    "id": "d8a1391e-13be-11ea-9bf5-7c67a222132e", 
                     "title": "bias:0"
                 }, 
                 {
                     "class": "H5L_TYPE_HARD", 
                     "collection": "datasets", 
-                    "id": "7c420e12-1149-11ea-bce4-7c67a222132e", 
+                    "id": "d8a1391f-13be-11ea-a259-7c67a222132e", 
                     "title": "kernel:0"
                 }
             ]
         }
     }, 
-    "root": "7c4123b0-1149-11ea-9219-7c67a222132e"
+    "root": "d89eef30-13be-11ea-b427-7c67a222132e"
 }

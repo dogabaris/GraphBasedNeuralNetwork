@@ -107,19 +107,24 @@ namespace WebApi.Services
             }
             else
             {
-                var workspace = new Workspace { Name = name };
-                var resWorkspace = _dbContext.Workspace.Add(workspace).Entity;
-                _dbContext.SaveChanges();
-
-                var userWorkspace = new UserWorkspace { UserId = user.Id, WorkspaceId = resWorkspace.Id };
-                var resUserWWorkspace = _dbContext.UserWorkspace.Add(userWorkspace).Entity;
-                try
+                var resWorkspace = new Workspace();
+                foreach (var usr in _dbContext.User.ToList()) // Tüm kullanýcýlara eklenmesi için deðiþtirildi.
                 {
+                    var workspace = new Workspace { Name = name };
+                    resWorkspace = _dbContext.Workspace.Add(workspace).Entity;
                     _dbContext.SaveChanges();
-                }
-                catch (Exception ex)
-                {
-                    Console.Write(ex);
+
+                    var userWorkspace = new UserWorkspace { UserId = usr.Id, WorkspaceId = resWorkspace.Id };
+                    var resUserWWorkspace = _dbContext.UserWorkspace.Add(userWorkspace).Entity;
+                    try
+                    {
+                        _dbContext.SaveChanges();
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.Write(ex);
+                    }
+
                 }
 
                 return new Result<Workspace> { Data = resWorkspace, Message = "Model baþarýyla oluþturuldu!", Status = "200" };

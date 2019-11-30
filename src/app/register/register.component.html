@@ -1,40 +1,45 @@
-﻿<div class="alert alert-info">
-  Kullanıcı bilgilerini girerek kayıt olabilirsiniz.
+﻿
+<div class="container">
+  <div id="login-wraper">
+    <div class="alert alert-info">
+      Kullanıcı bilgilerini girerek kayıt olabilirsiniz.
+    </div>
+    <h2>Kayıt Ol</h2>
+    <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
+      <div class="form-group">
+        <label for="Username">Kullanıcı Adı</label>
+        <input type="text" formControlName="Username" class="form-control" [ngClass]="{ 'is-invalid': submitted && f.Username.errors }" />
+        <div *ngIf="submitted && f.Username.errors" class="invalid-feedback">
+          <div *ngIf="f.Username.errors.required">Kullanıcı adı girmeniz gerekli.</div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="FirstName">Ad</label>
+        <input type="text" formControlName="FirstName" class="form-control" [ngClass]="{ 'is-invalid': submitted && f.FirstName.errors }" />
+        <div *ngIf="submitted && f.FirstName.errors" class="invalid-feedback">
+          <div *ngIf="f.FirstName.errors.required">Ad girmeniz gerekli.</div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="LastName">Soyad</label>
+        <input type="text" formControlName="LastName" class="form-control" [ngClass]="{ 'is-invalid': submitted && f.LastName.errors }" />
+        <div *ngIf="submitted && f.LastName.errors" class="invalid-feedback">
+          <div *ngIf="f.LastName.errors.required">Soyad girmeniz gerekli.</div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="Password">Parola</label>
+        <input type="Password" formControlName="Password" class="form-control" [ngClass]="{ 'is-invalid': submitted && f.Password.errors }" />
+        <div *ngIf="submitted && f.Password.errors" class="invalid-feedback">
+          <div *ngIf="f.Password.errors.required">Parola girmeniz gerekli.</div>
+        </div>
+      </div>
+      <div *ngIf="info" class="alert alert-success">{{info}}</div>
+      <div *ngIf="error" class="alert alert-danger">{{error}}</div>
+      <div class="form-group">
+        <button [disabled]="loading" class="btn btn-primary">Kayıt Ol</button>
+        <img *ngIf="loading" src="data:image/gif;base64,R0lGODlhEAAQAPIAAP///wAAAMLCwkJCQgAAAGJiYoKCgpKSkiH/C05FVFNDQVBFMi4wAwEAAAAh/hpDcmVhdGVkIHdpdGggYWpheGxvYWQuaW5mbwAh+QQJCgAAACwAAAAAEAAQAAADMwi63P4wyklrE2MIOggZnAdOmGYJRbExwroUmcG2LmDEwnHQLVsYOd2mBzkYDAdKa+dIAAAh+QQJCgAAACwAAAAAEAAQAAADNAi63P5OjCEgG4QMu7DmikRxQlFUYDEZIGBMRVsaqHwctXXf7WEYB4Ag1xjihkMZsiUkKhIAIfkECQoAAAAsAAAAABAAEAAAAzYIujIjK8pByJDMlFYvBoVjHA70GU7xSUJhmKtwHPAKzLO9HMaoKwJZ7Rf8AYPDDzKpZBqfvwQAIfkECQoAAAAsAAAAABAAEAAAAzMIumIlK8oyhpHsnFZfhYumCYUhDAQxRIdhHBGqRoKw0R8DYlJd8z0fMDgsGo/IpHI5TAAAIfkECQoAAAAsAAAAABAAEAAAAzIIunInK0rnZBTwGPNMgQwmdsNgXGJUlIWEuR5oWUIpz8pAEAMe6TwfwyYsGo/IpFKSAAAh+QQJCgAAACwAAAAAEAAQAAADMwi6IMKQORfjdOe82p4wGccc4CEuQradylesojEMBgsUc2G7sDX3lQGBMLAJibufbSlKAAAh+QQJCgAAACwAAAAAEAAQAAADMgi63P7wCRHZnFVdmgHu2nFwlWCI3WGc3TSWhUFGxTAUkGCbtgENBMJAEJsxgMLWzpEAACH5BAkKAAAALAAAAAAQABAAAAMyCLrc/jDKSatlQtScKdceCAjDII7HcQ4EMTCpyrCuUBjCYRgHVtqlAiB1YhiCnlsRkAAAOwAAAAAAAAAAAA==" />
+      </div>
+    </form>
+  </div>
 </div>
-<h2>Kayıt Ol</h2>
-<form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
-  <div class="form-group">
-    <label for="Username">Kullanıcı Adı</label>
-    <input type="text" formControlName="Username" class="form-control" [ngClass]="{ 'is-invalid': submitted && f.Username.errors }" />
-    <div *ngIf="submitted && f.Username.errors" class="invalid-feedback">
-      <div *ngIf="f.Username.errors.required">Kullanıcı adı girmeniz gerekli.</div>
-    </div>
-  </div>
-  <div class="form-group">
-    <label for="FirstName">Ad</label>
-    <input type="text" formControlName="FirstName" class="form-control" [ngClass]="{ 'is-invalid': submitted && f.FirstName.errors }" />
-    <div *ngIf="submitted && f.FirstName.errors" class="invalid-feedback">
-      <div *ngIf="f.FirstName.errors.required">Ad girmeniz gerekli.</div>
-    </div>
-  </div>
-  <div class="form-group">
-    <label for="LastName">Soyad</label>
-    <input type="text" formControlName="LastName" class="form-control" [ngClass]="{ 'is-invalid': submitted && f.LastName.errors }" />
-    <div *ngIf="submitted && f.LastName.errors" class="invalid-feedback">
-      <div *ngIf="f.LastName.errors.required">Soyad girmeniz gerekli.</div>
-    </div>
-  </div>
-  <div class="form-group">
-    <label for="Password">Parola</label>
-    <input type="Password" formControlName="Password" class="form-control" [ngClass]="{ 'is-invalid': submitted && f.Password.errors }" />
-    <div *ngIf="submitted && f.Password.errors" class="invalid-feedback">
-      <div *ngIf="f.Password.errors.required">Parola girmeniz gerekli.</div>
-    </div>
-  </div>
-  <div *ngIf="info" class="alert alert-success">{{info}}</div>
-  <div *ngIf="error" class="alert alert-danger">{{error}}</div>
-  <div class="form-group">
-    <button [disabled]="loading" class="btn btn-primary" style="width: 100%; display: block;">Kayıt Ol</button>
-    <img *ngIf="loading" src="data:image/gif;base64,R0lGODlhEAAQAPIAAP///wAAAMLCwkJCQgAAAGJiYoKCgpKSkiH/C05FVFNDQVBFMi4wAwEAAAAh/hpDcmVhdGVkIHdpdGggYWpheGxvYWQuaW5mbwAh+QQJCgAAACwAAAAAEAAQAAADMwi63P4wyklrE2MIOggZnAdOmGYJRbExwroUmcG2LmDEwnHQLVsYOd2mBzkYDAdKa+dIAAAh+QQJCgAAACwAAAAAEAAQAAADNAi63P5OjCEgG4QMu7DmikRxQlFUYDEZIGBMRVsaqHwctXXf7WEYB4Ag1xjihkMZsiUkKhIAIfkECQoAAAAsAAAAABAAEAAAAzYIujIjK8pByJDMlFYvBoVjHA70GU7xSUJhmKtwHPAKzLO9HMaoKwJZ7Rf8AYPDDzKpZBqfvwQAIfkECQoAAAAsAAAAABAAEAAAAzMIumIlK8oyhpHsnFZfhYumCYUhDAQxRIdhHBGqRoKw0R8DYlJd8z0fMDgsGo/IpHI5TAAAIfkECQoAAAAsAAAAABAAEAAAAzIIunInK0rnZBTwGPNMgQwmdsNgXGJUlIWEuR5oWUIpz8pAEAMe6TwfwyYsGo/IpFKSAAAh+QQJCgAAACwAAAAAEAAQAAADMwi6IMKQORfjdOe82p4wGccc4CEuQradylesojEMBgsUc2G7sDX3lQGBMLAJibufbSlKAAAh+QQJCgAAACwAAAAAEAAQAAADMgi63P7wCRHZnFVdmgHu2nFwlWCI3WGc3TSWhUFGxTAUkGCbtgENBMJAEJsxgMLWzpEAACH5BAkKAAAALAAAAAAQABAAAAMyCLrc/jDKSatlQtScKdceCAjDII7HcQ4EMTCpyrCuUBjCYRgHVtqlAiB1YhiCnlsRkAAAOwAAAAAAAAAAAA==" />
-  </div>
-</form>
