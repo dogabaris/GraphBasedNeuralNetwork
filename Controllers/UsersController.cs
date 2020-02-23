@@ -200,6 +200,24 @@ namespace WebApi.Controllers
             return StatusCode(500);
         }
 
+        [HttpGet("deletemodel")]
+        public async Task<IActionResult> DeleteModelAsync(string workspace)
+        {
+            string cypherQuery = string.Format("match(n) where n.workspace = '{0}' detach delete n", workspace);
+            using (var session = _driver.Session())
+            {
+                try
+                {
+                    var cursor = await session.RunAsync(cypherQuery);
+                }
+                catch (Exception ex)
+                {
+                    return BadRequest(ex);
+                }
+            }
+            return Ok();
+        }
+
         [AllowAnonymous]
         [HttpPost("importcnnh5model")]
         public IActionResult ImportCnnH5Model([FromBody] User user)
@@ -447,6 +465,150 @@ namespace WebApi.Controllers
         }
 
         [AllowAnonymous]
+        [HttpPost("importmnisth5model")]
+        public IActionResult ImportMnistH5Model([FromBody] User user)
+        {
+            string cypherQuery = "CREATE"; //(`10000` :output {workspace:'101'}),
+            var res = RunPython(@"h5tojson.py", "mnisth5.h5");
+            if (res)
+            {
+                try
+                {
+                    var contentPath = Path.GetFullPath("~/Content/H5Files/").Replace("~\\", "") + "model.json";
+                    using (StreamReader r = new StreamReader(contentPath))
+                    {
+                        string json = r.ReadToEnd();
+                        dynamic data = JObject.Parse(json);
+                        var start = data.root.Value;
+                        List<links> layers = data.groups[start].links.ToObject<List<links>>();
+                        layers.RemoveAll(x => !x.title.Contains("model")); // model_weights ve optimizer_weights var, eğitilmiş modelde sadece model_weigts kullanılır
+
+                        var datasets = ((IEnumerable<dynamic>)data.datasets)
+                                .Select(x => x).ToList();
+
+                        foreach (links layer in layers)
+                        {
+                            layer.layerAlias = new List<string>();
+                            while (data.groups[layer.id]?.links[0]?.id != null && data.groups[layer.id]?.links.Count < 2)
+                                layer.id = data.groups[layer.id]?.links[0]?.id;
+
+                            foreach (var link in data.groups[layer.id].links)
+                            {
+                                layer.title = data.groups[layer.id].alias[0];
+                                layer.layerAlias.Add(link.title.Value);
+                            }
+                        }
+
+                        cypherQuery += string.Format("(`0` :input {{ workspace: '101', data: '0' }}),");
+                        var id = 1;
+                        var extraIds = 0;
+                        //düğüm oluşturma
+                        foreach (links layer in layers)
+                        {
+                            for (int it = 0; it < datasets.Count(); it++)
+                            {
+                                foreach (string layerAlias in layer.layerAlias)
+                                    if (datasets.ElementAt(it).Value.alias[0] == layer.title + "/" + layerAlias)
+                                    {
+                                        long matrix_x;
+                                        long matrix_y;
+                                        var is2dArray = false;
+                                        if (datasets.ElementAt(it).Value.shape.dims.Count > 1)
+                                        {
+                                            matrix_x = datasets.ElementAt(it).Value.shape.dims[datasets.ElementAt(it).Value.shape.dims.Count - 2].Value;
+                                            matrix_y = datasets.ElementAt(it).Value.shape.dims[datasets.ElementAt(it).Value.shape.dims.Count - 1];
+                                            is2dArray = true;
+                                        }
+                                        else
+                                        {
+                                            matrix_x = datasets.ElementAt(it).Value.shape.dims[datasets.ElementAt(it).Value.shape.dims.Count - 1].Value;
+                                            matrix_y = datasets.ElementAt(it).Value.shape.dims.Count;
+                                            is2dArray = false;
+                                        }
+
+                                        var matrix = datasets.ElementAt(it).Value.value;
+
+                                        for (var matrixNodeX = 0; matrixNodeX < matrix_x; matrixNodeX++)
+                                        {
+                                            for (var matrixNodeY = 0; matrixNodeY < matrix_y; matrixNodeY++)
+                                            {
+                                                if (!is2dArray)
+                                                    cypherQuery += string.Format("(`{0}` :{1} {{ workspace: '101', data: {2}, x:{3}, y:{4} }}),", id, layerAlias.Replace("/", "_").Replace(":", "_"), matrix[matrixNodeX], matrixNodeX, matrixNodeY);
+                                                else
+                                                    cypherQuery += string.Format("(`{0}` :{1} {{ workspace: '101', data: {2}, x:{3}, y:{4} }}),", id, layerAlias.Replace("/", "_").Replace(":", "_"), matrix[matrixNodeX][matrixNodeY], matrixNodeX, matrixNodeY);
+
+                                                id++;
+                                            }
+                                        }
+
+                                        //middleOutput
+                                        cypherQuery += string.Format("(`{0}` :{1} {{ workspace: '101', data: {2} }}),", id, "middleoutput_" + layerAlias.Replace("/", "_").Replace(":", "_"), 0);
+                                        id++;
+                                        extraIds++;
+                                    }
+                            }
+                        }
+
+                        long id2 = 0;
+                        long cumulativeLayerIdCount = 0;
+                        long extraLayer = 1;
+                        //relationship oluşturma
+                        foreach (links layer in layers)
+                        {
+                            for (int it = 0; it < datasets.Count(); it++)
+                            {
+                                foreach (string layerAlias in layer.layerAlias)
+                                {
+                                    if (datasets.ElementAt(it).Value.alias[0] == layer.title + "/" + layerAlias)
+                                    {
+                                        long matrix_x;
+                                        long matrix_y;
+                                        var is2dArray = false;
+                                        if (datasets.ElementAt(it).Value.shape.dims.Count > 1)
+                                        {
+                                            matrix_x = datasets.ElementAt(it).Value.shape.dims[datasets.ElementAt(it).Value.shape.dims.Count - 2].Value;
+                                            matrix_y = datasets.ElementAt(it).Value.shape.dims[datasets.ElementAt(it).Value.shape.dims.Count - 1];
+                                            is2dArray = true;
+                                        }
+                                        else
+                                        {
+                                            matrix_x = datasets.ElementAt(it).Value.shape.dims[datasets.ElementAt(it).Value.shape.dims.Count - 1].Value;
+                                            matrix_y = datasets.ElementAt(it).Value.shape.dims.Count;
+                                            is2dArray = false;
+                                        }
+
+                                        var layerIdCount = matrix_x * matrix_y;
+                                        cumulativeLayerIdCount += layerIdCount;
+
+                                        //dağılırken bir node'dan çoğa
+                                        for (var iterator = 1; iterator <= layerIdCount; iterator++)
+                                            cypherQuery += string.Format("(`{0}`)-[:`related`]->(`{1}`),", id2, id2 + iterator);
+
+                                        id2++;
+                                        //toplanırken çok node'dan bire
+                                        for (; id2 < cumulativeLayerIdCount + extraLayer; id2++)
+                                        {
+                                            cypherQuery += string.Format("(`{0}`)-[:`related`]->(`{1}`),", id2, cumulativeLayerIdCount + extraLayer);
+                                        }
+
+                                        extraLayer++;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex);
+                    return StatusCode(500);
+                }
+            }
+
+            return StatusCode(500);
+        }
+
+        [AllowAnonymous]
         [HttpPost("exporth5model")]
         public IActionResult ExportH5Model([FromBody] ExportH5Model exportModel)
         {
@@ -526,7 +688,7 @@ namespace WebApi.Controllers
         }
 
         [HttpGet("trainbinaryperceptron")]
-        public async System.Threading.Tasks.Task<IActionResult> TrainBinaryPerceptronAsync(string model)
+        public async Task<IActionResult> TrainBinaryPerceptronAsync(string model)
         {
             var client = Neo4JHelper.ConnectDb();
 
@@ -601,6 +763,7 @@ namespace WebApi.Controllers
                     var exceptedResult = outputPerceptron.Find(o => o.expectedoutput != null).expectedoutput;
                     try
                     {
+                        attemptCount++;
                         var output = await perceptron.LearnAsync(exceptedResult.Value, inputPerceptron);
 
                         if (output != exceptedResult)

@@ -83,7 +83,7 @@ namespace WebApi.Trainers
                     {
                         try
                         {
-                            var cursor = session.Run(String.Format("Start i=NODE({0}) MATCH(i:input)-[r]-(h:hidden) SET r.weight = r.weight + {1} RETURN i,r,h", input.id, (LearningRate * error * input.data).ToString(CultureInfo.InvariantCulture)));
+                            var cursor = session.Run(String.Format("Start i=NODE({0}) MATCH(i:input)-[r]-(h:hidden) SET r.weight = r.weight + {1}", input.id, (LearningRate * error * input.data).ToString(CultureInfo.InvariantCulture))); //.ToString(CultureInfo.InvariantCulture)
 
                             await RefreshWeightsAsync();
                         }

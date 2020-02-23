@@ -37,6 +37,16 @@ export class UserService {
     }
   }
 
+  importMnistH5Model() {
+    var user = JSON.parse(localStorage.getItem('currentUser'));
+    if (user && user.token) {
+      return this.http.post(`${config.apiUrl}/users/importmnisth5model`, user);
+    }
+    else {
+      this.toastr.error("Giriş yapın!");
+    }
+  }
+
   exportH5Model(workspace: any) {
     var user = JSON.parse(localStorage.getItem('currentUser'));
     if (user && user.token) {
@@ -45,6 +55,11 @@ export class UserService {
     else {
       this.toastr.error("Giriş yapın!");
     }
+  }
+
+  deleteModel(workspace: any) {
+    let params = new HttpParams().set("workspace", workspace);
+    return this.http.get<Workspace[]>(`${config.apiUrl}/users/deletemodel`, { params: params });
   }
 
   getAllWorkspaces() {

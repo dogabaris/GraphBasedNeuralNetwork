@@ -50,6 +50,19 @@ export class HomeComponent implements OnInit {
     this.openTestModel = !this.openTestModel;
   }
 
+  deleteModel() {
+    this.userService.deleteModel(this.selectedModel).pipe(first()).subscribe(
+      res => {
+        console.log(res);
+        this.showSuccess("Model başarıyla silindi!");
+      },
+      err => {
+        console.log("Error occured");
+        this.showError("Model silinirken sorun oluştu!");
+      }
+    );
+  }
+
   testModel() {
     var dataNodes = new Array<number>();
     dataNodes.push(this.testNode1);
@@ -89,6 +102,18 @@ export class HomeComponent implements OnInit {
 
   importCnnH5Model() {
     this.userService.importCnnH5Model().pipe(first()).subscribe(result => {
+      console.log(result);
+      this.showSuccess("Model başarıyla aktarıldı!");
+    },
+      err => {
+        console.log(err);
+        console.log("Error occured!");
+        this.showError("Model aktarılırken sorun oluştu!");
+      });
+  }
+
+  importMnistH5Model(){
+    this.userService.importMnistH5Model().pipe(first()).subscribe(result => {
       console.log(result);
       this.showSuccess("Model başarıyla aktarıldı!");
     },
@@ -195,11 +220,11 @@ export class HomeComponent implements OnInit {
   }
 
   showSuccess(msg: any) {
-    this.toastr.success(msg, null, { disableTimeOut: true, closeButton: true, enableHtml: true });
+    this.toastr.success(msg, null, { disableTimeOut: true, positionClass: 'toast-top-center', closeButton: true, enableHtml: true });
   }
 
   showError(msg: any) {
-    this.toastr.error(msg, null, { disableTimeOut: true, closeButton: true, enableHtml: true  });
+    this.toastr.error(msg, null, { disableTimeOut: true, positionClass: 'toast-top-center', closeButton: true, enableHtml: true  });
   }
 
   createModel() {
