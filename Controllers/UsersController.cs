@@ -533,9 +533,9 @@ namespace WebApi.Controllers
                                             for (var matrixNodeY = 0; matrixNodeY < matrix_y; matrixNodeY++)
                                             {
                                                 if (!is2dArray)
-                                                    cypherQuery += string.Format("(`{0}` :{1} {{ workspace: '101', data: {2}, x:{3}, y:{4} }}),", id, layerAlias.Replace("/", "_").Replace(":", "_"), matrix[matrixNodeX], matrixNodeX, matrixNodeY);
+                                                    cypherQuery += string.Format("(`{0}` :{1} {{ workspace: '101', data: {2}, x:{3}, y:{4} }}),", id, layerAlias.Replace("/", "_").Replace(":", "_"), matrix[matrixNodeX].ToString(CultureInfo.InvariantCulture), matrixNodeX, matrixNodeY);
                                                 else
-                                                    cypherQuery += string.Format("(`{0}` :{1} {{ workspace: '101', data: {2}, x:{3}, y:{4} }}),", id, layerAlias.Replace("/", "_").Replace(":", "_"), matrix[matrixNodeX][matrixNodeY], matrixNodeX, matrixNodeY);
+                                                    cypherQuery += string.Format("(`{0}` :{1} {{ workspace: '101', data: {2}, x:{3}, y:{4} }}),", id, layerAlias.Replace("/", "_").Replace(":", "_"), matrix[matrixNodeX][matrixNodeY].ToString(CultureInfo.InvariantCulture), matrixNodeX, matrixNodeY);
 
                                                 id++;
                                             }
@@ -596,6 +596,20 @@ namespace WebApi.Controllers
                                 }
                             }
                         }
+                    }
+                    System.IO.File.WriteAllText(@"C:\Users\Public\MnistCypherQuery.txt", cypherQuery);
+
+                    var response = string.Empty;
+                    using (var client = new HttpClient())
+                    {
+                        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", user.Token);
+                        var result = client.PostAsJsonAsync("http://" + Request.Host + "/users/createmodel", new CreateModel
+                        {
+                            cypherQuery = cypherQuery.TrimEnd(','),
+                            user = user
+                        }).Result;
+                        if (result.IsSuccessStatusCode)
+                            return Ok();
                     }
                 }
                 catch (Exception ex)
