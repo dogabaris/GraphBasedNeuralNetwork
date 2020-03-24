@@ -52,10 +52,14 @@ export class HomeComponent implements OnInit {
     this.toggleLabels();
   }
 
-  bigGraph(this: any, workspace: any) {
+  showGroupedGraph() {
+    this.bigGraph(this.selectedModel, true);
+  }
+
+  bigGraph(this: any, workspace: any, showGrouped: any) {
     (document.querySelector('#graph') as HTMLElement).style.display = 'block';
     var neo = neo4j.v1;
-    var driver = neo.driver("bolt://localhost:11002", neo.auth.basic("neo4j", "password"));
+    var driver = neo.driver("bolt://localhost:7687", neo.auth.basic("neo4j", "password"));
     var session = driver.session();
     var container = document.body;
     var domLabels: any;
@@ -207,7 +211,10 @@ export class HomeComponent implements OnInit {
       }
     };
 
-    query("CYPHER runtime=compiled MATCH (to)-->(from) where from.workspace='" + workspace + "' RETURN from as n, from.type as nt, to as m, to.type as mt");
+    if (showGrouped)
+      query("CALL apoc.nodes.group(['*'],['workspace']) YIELD nodes,relationships UNWIND nodes as node UNWIND relationships as rel WITH node, rel MATCH p=(node)-[rel]->() WHERE apoc.any.properties(node).workspace = '" + workspace + "' RETURN node as n, node.type as nt, nodes(p)[1] as m, nodes(p)[1].type as mt");
+    else
+      query("CYPHER runtime=compiled MATCH (to)-->(from) where from.workspace='" + workspace + "' RETURN from as n, from.type as nt, to as m, to.type as mt");
     //renderer.run(); // her seferinde çizim için
   }
 
@@ -335,7 +342,7 @@ export class HomeComponent implements OnInit {
     this.cancelRefreshOfViewModel();
 
     var neo = neo4j.v1;
-    var driver = neo.driver("bolt://localhost:11002", neo.auth.basic("neo4j", "password"));
+    var driver = neo.driver("bolt://localhost:7687", neo.auth.basic("neo4j", "password"));
     var sessionlocal = driver.session();
 
     var isBig = false;
@@ -352,7 +359,7 @@ export class HomeComponent implements OnInit {
         if (isBig) {
           console.log("Big Graph");
           _this.showBigGraphEditor = true;
-          _this.bigGraph(_this.selectedModel);
+          _this.bigGraph(_this.selectedModel, false);
         } else {
           console.log("Little Graph");
           _this.littleGraph(_this.selectedModel);
@@ -372,7 +379,7 @@ export class HomeComponent implements OnInit {
 
     var config = {
       container_id: "viz",
-      server_url: "bolt://localhost:11002",
+      server_url: "bolt://localhost:7687",
       server_user: "neo4j",
       server_password: "password",
       labels: {

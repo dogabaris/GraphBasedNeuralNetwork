@@ -14,3 +14,35 @@ start n=node(*), r=relationship(*) match(n) where(n.workspace = '2') return n,r
 MATCH (n)
 WHERE (n.workspace = '3')
 DETACH DELETE n;
+
+
+//GRUPLAMA
+CALL apoc.nodes.group(['*'],['workspace']);
+
+//index
+
+call db.labels() yield label
+with label, ['workspace'] as indexProp
+with collect(label) as labels, collect(indexProp) as indexProps
+with apoc.map.fromLists(labels, indexProps) as indexMap
+call apoc.schema.assert(indexMap,{}) yield label, key, unique, action
+return label, key, unique, action
+
+// GRUPLAMA işlemi
+
+CALL apoc.nodes.group(['*'],['workspace']) YIELD nodes,relationships
+UNWIND nodes as node
+UNWIND relationships as rel
+WITH node, rel
+WHERE apoc.any.properties(node).workspace = '100'
+RETURN node,rel
+
+// Önyüzde gruplanırken 2. node a ihtiyaç duyulan durumlarda
+
+CALL apoc.nodes.group(['*'],['workspace']) YIELD nodes,relationships
+UNWIND nodes as node
+UNWIND relationships as rel
+WITH node, rel
+MATCH p=(node)-[rel]->()
+WHERE apoc.any.properties(node).workspace = '101'
+RETURN node,rel,nodes(p)[1]
