@@ -54,6 +54,7 @@ export class HomeComponent implements OnInit {
 
   showGroupedGraph() {
     this.bigGraph(this.selectedModel, true);
+    this.showBigGraphEditor = true;
   }
 
   bigGraph(this: any, workspace: any, showGrouped: any) {
@@ -82,9 +83,6 @@ export class HomeComponent implements OnInit {
       dragCoeff: 0.009,
       gravity: -1,
       theta: 0.8,
-      //link uzunluk değiştirmek için
-      //springTransform: function (link, spring) {
-      //spring.length = 2;
     });
     var colors = { Member: 0xff0000, Topic: 0x000000, Group: 0x0000ff };
     _this.graphics = Viva.Graph.View.webglGraphics();
@@ -132,12 +130,12 @@ export class HomeComponent implements OnInit {
       console.log("clearbiggraph ", _this.renderer);
       _this.renderer.dispose();
       _this.renderer = null;
+      _this.showBigGraphEditor = false;
       const removeElements = document.getElementsByClassName("node-label");
       while (removeElements.length > 0) removeElements[0].remove();
     }
 
     function generateDOMLabels(graph: any) {
-      // this will map node id into DOM element
       var labels = Object.create(null);
       graph.forEachNode(function (node: any) {
         var label = document.createElement('span');
@@ -146,8 +144,6 @@ export class HomeComponent implements OnInit {
         labels[node.id] = label;
         container.appendChild(label);
       });
-      // NOTE: If your graph changes over time you will need to
-      // monitor graph changes and update DOM elements accordingly
       return labels;
     }
 
@@ -175,26 +171,14 @@ export class HomeComponent implements OnInit {
       },
       onCompleted: function () {
         console.log("Query finished, currently ", count, "links");
-
-        // first we generate DOM label for each graph node. Be cautious
-        // here, since for large graphs with more than 1k nodes, this will
-        // become a bottleneck.
         domLabels = generateDOMLabels(_this.graph);
 
         _this.graphics.placeNode(function (ui: any, pos: any) {
-          // This callback is called by the renderer before it updates
-          // node coordinate. We can use it to update corresponding DOM
-          // label position;
-
-          // we create a copy of layout position
           var domPos = {
             x: pos.x,
             y: pos.y
           };
-          // And ask graphics to transform it to DOM coordinates:
           _this.graphics.transformGraphToClientCoordinates(domPos);
-
-          // then move corresponding dom label to its own position:
           var nodeId = ui.node.id;
           var labelStyle = domLabels[nodeId].style;
           labelStyle.left = domPos.x + 'px';
@@ -222,10 +206,6 @@ export class HomeComponent implements OnInit {
     , private cdRef: ChangeDetectorRef) { }
 
   ngOnInit() {
-    //this.userService.getAll().pipe(first()).subscribe(users => {
-    //  this.users = users;
-    //});
-
     this.userService.getAllWorkspaces().pipe(first()).subscribe(workspaces => {
       this.workspaces = workspaces;
     });
@@ -358,8 +338,8 @@ export class HomeComponent implements OnInit {
 
         if (isBig) {
           console.log("Big Graph");
-          _this.showBigGraphEditor = true;
           _this.bigGraph(_this.selectedModel, false);
+          _this.showBigGraphEditor = true;
         } else {
           console.log("Little Graph");
           _this.littleGraph(_this.selectedModel);

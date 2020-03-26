@@ -27,7 +27,7 @@
     <div *ngIf="showTrainTools" class="tools form-inline well" id="train-tools">
       <button class="btn pull-right" (click)="deleteModel();"><i class="icon-warning-sign"></i> Modeli Sil</button>
       <button class="btn pull-right" (click)="clearBigGraphFnc();"><i class="icon-warning-sign"></i> Modeli Temizle</button>
-      <button class="btn" id="big_graph_button" (click)="toggleLabelsFnc()"><i class="icon-plus"></i> Verileri Göster</button>
+      <button *ngIf="showBigGraphEditor == true" class="btn" id="big_graph_button" (click)="toggleLabelsFnc()"><i class="icon-plus"></i> Verileri Göster</button>
       <button *ngIf="showBigGraphEditor == false  && isPause == false" class="btn pull-right" (click)="cancelRefreshOfViewModel();"><i class="icon-stop"></i> Canlı Takibi Durdur</button>
       <button *ngIf="showBigGraphEditor == false  && isPause == true" class="btn pull-right" (click)="startRefreshInterval();"><i class="icon-play"></i> Canlı Takibi Devam Ettir</button>
       <button *ngIf="showBigGraphEditor == true" (click)="showGroupedGraph();" class="btn pull-right"><i class="icon-play"></i> Grupla</button>
