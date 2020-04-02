@@ -10,6 +10,7 @@ import { Workspace } from '../_models/workspace';
 declare var NeoVis: any;
 declare var neo4j: any;
 declare var Viva: any;
+declare var nj: any;
 
 @Component({
   templateUrl: 'home.component.html'
@@ -39,13 +40,46 @@ export class HomeComponent implements OnInit {
   layout: any;
   viva: any;
   events: any;
+  stopBigGraphRender: any;
+  uploadedImg: any;
+  predicateMatrix: any;
 
   testNode1 = 0;
   testNode2 = 0;
   testNode3 = 0;
 
+  handleFileInput(this: any, files: any) {
+    var _this = this;
+    var reader = new FileReader();
+    reader.onload = function (e) {
+      console.log(e.target.result)
+      _this.uploadedImg = e.target.result;
+      _this.predicateMatrix = new Array<number>()
+      var $image = new Image();
+      $image.crossOrigin = 'Anonymous';
+      $image.onload = function () {
+        var img = nj.images.read($image)
+        console.log(img)
+        var reshaped = img.reshape(1, 1, 28, 28).selection.data;
+        for (var i = 0, length = reshaped.length; i < length; i++) {
+          _this.predicateMatrix.push(reshaped[i] / 255);
+        }
+        console.log(reshaped)
+        console.log(_this.predicateMatrix)
+      }
+
+      $image.src = _this.uploadedImg;
+    };
+    console.log(files);
+    reader.readAsDataURL(files); //files.item(0)
+  }
+
   clearBigGraphFnc() {
     this.clearBigGraph();
+  }
+
+  stopBigGraphRenderFnc() {
+    this.stopBigGraphRender();
   }
 
   toggleLabelsFnc() {
@@ -195,6 +229,11 @@ export class HomeComponent implements OnInit {
       }
     };
 
+    this.stopBigGraphRender = function stopBigGraphRender(){
+      console.log("Pausing renderer");
+      _this.renderer.pause();
+    }
+
     if (showGrouped)
       query("CALL apoc.nodes.group(['*'],['workspace']) YIELD nodes,relationships UNWIND nodes as node UNWIND relationships as rel WITH node, rel MATCH p=(node)-[rel]->() WHERE apoc.any.properties(node).workspace = '" + workspace + "' RETURN node as n, node.type as nt, nodes(p)[1] as m, nodes(p)[1].type as mt");
     else
@@ -229,12 +268,13 @@ export class HomeComponent implements OnInit {
   }
 
   testModel() {
-    var dataNodes = new Array<number>();
+    var dataNodes = new Array<any>();
     dataNodes.push(this.testNode1);
     dataNodes.push(this.testNode2);
     dataNodes.push(this.testNode3);
+    console.log(this.predicateMatrix.values())
 
-    this.userService.testModel(this.selectedModel, dataNodes).pipe(first()).subscribe(
+    this.userService.testModel(this.selectedModel, dataNodes, this.predicateMatrix).pipe(first()).subscribe(
       res => {
         console.log(res);
         this.showSuccess("Model test edildi!");

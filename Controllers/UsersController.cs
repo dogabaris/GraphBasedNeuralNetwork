@@ -817,72 +817,79 @@ namespace WebApi.Controllers
         [HttpPost("testmodel")]
         public async Task<IActionResult> TestModel([FromBody] TestModel testModel)
         {
-            var nodeIds = new List<int>();
-
-            //idleri topluyor.
-            using (var session = _driver.Session())
+            if (testModel.matrix != null)
             {
-                try
-                {
-                    var cursor = await session.RunAsync(@"MATCH(n)                                                          WHERE n.workspace = '" + testModel.workspace +
-                                                          "' RETURN id(n)");
 
-                    nodeIds = (await cursor.ToListAsync())
-                                            .Map<int>().ToList();
-                }
-                catch (Exception ex)
-                {
-                    return BadRequest(ex);
-                }
             }
-
-            //önceki verileri temizliyor
-            using (var session = _driver.Session())
+            else
             {
-                try
-                {
-                    var cursor = await session.RunAsync(String.Format("MATCH(n) WHERE n.workspace = '{0}' SET n.data = 0", testModel.workspace));
-                }
-                catch (Exception ex)
-                {
-                    return BadRequest(ex);
-                }
-            }
+                var nodeIds = new List<int>();
 
-            //giriş datalarını yazıyor.
-            var it = 0;
-            foreach (var id in nodeIds)
-            {
+                //idleri topluyor.
                 using (var session = _driver.Session())
                 {
                     try
                     {
-                        var cursor = await session.RunAsync(String.Format("Start n=NODE({0}) MATCH(n)-[r]->(n2) SET n.data = {1}", id, testModel.nodeDatas.GetValue(it)));
+                        var cursor = await session.RunAsync(@"MATCH(n)                                                          WHERE n.workspace = '" + testModel.workspace +
+                                                              "' RETURN id(n)");
+
+                        nodeIds = (await cursor.ToListAsync())
+                                                .Map<int>().ToList();
                     }
                     catch (Exception ex)
                     {
                         return BadRequest(ex);
                     }
                 }
-                it++;
 
-                if (it >= testModel.nodeDatas.Count())
-                    break;
-            }
-
-            //test ediyor
-            foreach (var id in nodeIds)
-            {
+                //önceki verileri temizliyor
                 using (var session = _driver.Session())
                 {
                     try
                     {
-                        var cursor = session.Run(String.Format("Start n=NODE({0}) MATCH(n)-[r]->(n2) SET n2.data = n2.data + ((n.data * r.kernel) + r.bias) RETURN n,r,n2", id));
-
+                        var cursor = await session.RunAsync(String.Format("MATCH(n) WHERE n.workspace = '{0}' SET n.data = 0", testModel.workspace));
                     }
                     catch (Exception ex)
                     {
+                        return BadRequest(ex);
+                    }
+                }
+
+                //giriş datalarını yazıyor.
+                var it = 0;
+                foreach (var id in nodeIds)
+                {
+                    using (var session = _driver.Session())
+                    {
+                        try
+                        {
+                            var cursor = await session.RunAsync(String.Format("Start n=NODE({0}) MATCH(n)-[r]->(n2) SET n.data = {1}", id, testModel.nodeDatas.GetValue(it)));
+                        }
+                        catch (Exception ex)
+                        {
+                            return BadRequest(ex);
+                        }
+                    }
+                    it++;
+
+                    if (it >= testModel.nodeDatas.Count())
                         break;
+                }
+
+                //test ediyor
+                foreach (var id in nodeIds)
+                {
+                    using (var session = _driver.Session())
+                    {
+                        try
+                        {
+                            var cursor = session.Run(String.Format("Start n=NODE({0}) MATCH(n)-[r]->(n2) SET n2.data = n2.data + ((n.data * r.kernel) + r.bias) RETURN n,r,n2", id));
+
+                        }
+                        catch (Exception ex)
+                        {
+                            break;
+                        }
                     }
                 }
             }
