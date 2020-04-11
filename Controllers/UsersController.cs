@@ -16,15 +16,12 @@ using System.Linq;
 using WebApi.Helpers;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
-using System.Collections;
 using WebApi.Entities.H5JsonModel;
 using System.Net.Http;
 using Microsoft.AspNetCore.Http;
 using System.Net.Http.Headers;
 using ServiceStack.Text;
 using Neo4jClient;
-using Microsoft.EntityFrameworkCore.Internal;
 using System.Threading.Tasks;
 using System.Globalization;
 
@@ -502,12 +499,13 @@ namespace WebApi.Controllers
                         cypherQuery += string.Format("(`0` :input {{ workspace: '101', data: '0' }}),");
                         var id = 1;
                         var extraIds = 0;
+                        layers[0].layerAlias.Reverse();
                         //düğüm oluşturma
                         foreach (links layer in layers)
                         {
-                            for (int it = 0; it < datasets.Count(); it++)
-                            {
-                                foreach (string layerAlias in layer.layerAlias)
+                            foreach (string layerAlias in layer.layerAlias)
+                                for (int it = 0; it < datasets.Count(); it++)
+                                {
                                     if (datasets.ElementAt(it).Value.alias[0] == layer.title + "/" + layerAlias)
                                     {
                                         long matrix_x;
@@ -546,7 +544,7 @@ namespace WebApi.Controllers
                                         id++;
                                         extraIds++;
                                     }
-                            }
+                                }
                         }
 
                         long id2 = 0;
@@ -555,9 +553,9 @@ namespace WebApi.Controllers
                         //relationship oluşturma
                         foreach (links layer in layers)
                         {
-                            for (int it = 0; it < datasets.Count(); it++)
+                            foreach (string layerAlias in layer.layerAlias)
                             {
-                                foreach (string layerAlias in layer.layerAlias)
+                                for (int it = 0; it < datasets.Count(); it++)
                                 {
                                     if (datasets.ElementAt(it).Value.alias[0] == layer.title + "/" + layerAlias)
                                     {
@@ -814,12 +812,84 @@ namespace WebApi.Controllers
             }
         }
 
+        private HashSet<string> FindOrderedLayers(List<string> layers1, List<string> layers2, HashSet<string> ret)
+        {
+            var counter = 0;
+            foreach (var layer in layers1)
+            {
+                if (layer == ret.Last())
+                    break;
+                counter++;
+            }
+
+            if (layers2.Count() > 0)
+            {
+                ret.Add(layers2.ElementAt(counter));
+                layers2.RemoveAt(counter);
+            }
+            else
+                return ret;
+
+            FindOrderedLayers(layers1, layers2, ret);
+            return ret;
+        }
+
         [HttpPost("testmodel")]
         public async Task<IActionResult> TestModel([FromBody] TestModel testModel)
         {
             if (testModel.matrix != null)
             {
 
+                using (var session = _driver.Session())
+                {
+                    try
+                    {
+                        var layers1 = new List<string>();
+                        var layers2 = new List<string>();
+                        var layers = new HashSet<string>();
+                        var cursor2 = session.Run(@"CALL apoc.nodes.group(['*'],['workspace']) YIELD nodes, relationships UNWIND nodes as node UNWIND relationships as rel WITH node, rel MATCH p=(node)-[rel]->() WHERE apoc.any.properties(node).workspace = '101' RETURN node, rel, nodes(p)[1]");
+                        foreach (var record in cursor2)
+                        {
+                            layers1.Add(record[0].As<INode>().Labels?.FirstOrDefault());
+                            layers2.Add(record[2].As<INode>().Labels?.FirstOrDefault());
+                        }
+                        layers.Add(layers1.First());
+                        layers.Add(layers2.First());
+                        layers1.RemoveAt(0);
+                        layers2.RemoveAt(0);
+                        layers = FindOrderedLayers(layers1, layers2, layers);
+
+                        //foreach (var layer in layers)
+                        //{
+                        //    var nodes = new List<Node>();
+
+                        //    var cursor = await session.RunAsync(@"MATCH(n:" + layer + ") " +
+                        //        "WHERE n.workspace = '" + testModel.workspace +
+                        //        "' RETURN n");
+
+                        //    nodes = (await cursor.ToListAsync())
+                        //                            .Map<Node>().ToList();
+                        //    var xCount = testModel.matrix.Count();
+                        //    var yCount = nodes.GroupBy(n => n.y).Select(g => g.First()).Count();
+                        //    var outputMatrix = new float[xCount, yCount];
+
+                        //    for (var i = 0; i < testModel.matrix.Count(); i++)
+                        //    {
+                        //        var matrix = nodes.Where(n => n.y == i).ToList();
+                                
+                        //        foreach(var cell in matrix)
+                        //        {
+                        //            var outputMatrix[][] = testModel.matrix[i] * cell.y;
+                        //        }
+
+                        //    }
+                        //}
+                    }
+                    catch (Exception ex)
+                    {
+                        return BadRequest(ex);
+                    }
+                }
             }
             else
             {
@@ -834,7 +904,7 @@ namespace WebApi.Controllers
                                                               "' RETURN id(n)");
 
                         nodeIds = (await cursor.ToListAsync())
-                                                .Map<int>().ToList();
+                                                                    .Map<int>().ToList();
                     }
                     catch (Exception ex)
                     {

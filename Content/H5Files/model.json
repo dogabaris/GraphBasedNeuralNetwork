@@ -1,7 +1,7 @@
 {
     "apiVersion": "1.1.1", 
     "datasets": {
-        "f6c9908f-6bbc-11ea-bb74-7c67a222132e": {
+        "5b89575f-76bf-11ea-b5f7-7c67a222132e": {
             "alias": [
                 "/model_weights/dense_1/dense_1/bias:0"
             ], 
@@ -35,7 +35,7 @@
                 -0.12787990272045135
             ]
         }, 
-        "f6c99090-6bbc-11ea-bd92-7c67a222132e": {
+        "5b897e70-76bf-11ea-8f9c-7c67a222132e": {
             "alias": [
                 "/model_weights/dense_1/dense_1/kernel:0"
             ], 
@@ -9468,7 +9468,7 @@
                 ]
             ]
         }, 
-        "f6c9b79f-6bbc-11ea-8461-7c67a222132e": {
+        "5b89a580-76bf-11ea-8e3a-7c67a222132e": {
             "alias": [
                 "/optimizer_weights/Variable:0"
             ], 
@@ -9502,7 +9502,7 @@
                 0.00019120147044304758
             ]
         }, 
-        "f6c9deb0-6bbc-11ea-9e3d-7c67a222132e": {
+        "5b89a581-76bf-11ea-9656-7c67a222132e": {
             "alias": [
                 "/optimizer_weights/Variable_1:0"
             ], 
@@ -18935,7 +18935,7 @@
                 ]
             ]
         }, 
-        "f6c9deb1-6bbc-11ea-ac2a-7c67a222132e": {
+        "5b89cc8f-76bf-11ea-a4b3-7c67a222132e": {
             "alias": [
                 "/optimizer_weights/Variable_2:0"
             ], 
@@ -18969,7 +18969,7 @@
                 1.446478989919342e-07
             ]
         }, 
-        "f6ca05c0-6bbc-11ea-b53c-7c67a222132e": {
+        "5b89cc90-76bf-11ea-b725-7c67a222132e": {
             "alias": [
                 "/optimizer_weights/Variable_3:0"
             ], 
@@ -28404,7 +28404,7 @@
         }
     }, 
     "groups": {
-        "f6c7bbd1-6bbc-11ea-b522-7c67a222132e": {
+        "5b88bb1e-76bf-11ea-a9a5-7c67a222132e": {
             "alias": [
                 "/"
             ], 
@@ -28466,18 +28466,18 @@
                 {
                     "class": "H5L_TYPE_HARD", 
                     "collection": "groups", 
-                    "id": "f6c91b5e-6bbc-11ea-a11b-7c67a222132e", 
+                    "id": "5b89304f-76bf-11ea-8340-7c67a222132e", 
                     "title": "model_weights"
                 }, 
                 {
                     "class": "H5L_TYPE_HARD", 
                     "collection": "groups", 
-                    "id": "f6c9b79e-6bbc-11ea-a228-7c67a222132e", 
+                    "id": "5b897e71-76bf-11ea-81a8-7c67a222132e", 
                     "title": "optimizer_weights"
                 }
             ]
         }, 
-        "f6c91b5e-6bbc-11ea-a11b-7c67a222132e": {
+        "5b89304f-76bf-11ea-8340-7c67a222132e": {
             "alias": [
                 "/model_weights"
             ], 
@@ -28531,12 +28531,12 @@
                 {
                     "class": "H5L_TYPE_HARD", 
                     "collection": "groups", 
-                    "id": "f6c94270-6bbc-11ea-9ad6-7c67a222132e", 
+                    "id": "5b893050-76bf-11ea-9f9b-7c67a222132e", 
                     "title": "dense_1"
                 }
             ]
         }, 
-        "f6c94270-6bbc-11ea-9ad6-7c67a222132e": {
+        "5b893050-76bf-11ea-9f9b-7c67a222132e": {
             "alias": [
                 "/model_weights/dense_1"
             ], 
@@ -28565,12 +28565,12 @@
                 {
                     "class": "H5L_TYPE_HARD", 
                     "collection": "groups", 
-                    "id": "f6c96980-6bbc-11ea-8f81-7c67a222132e", 
+                    "id": "5b89575e-76bf-11ea-8c62-7c67a222132e", 
                     "title": "dense_1"
                 }
             ]
         }, 
-        "f6c96980-6bbc-11ea-8f81-7c67a222132e": {
+        "5b89575e-76bf-11ea-8c62-7c67a222132e": {
             "alias": [
                 "/model_weights/dense_1/dense_1"
             ], 
@@ -28578,18 +28578,18 @@
                 {
                     "class": "H5L_TYPE_HARD", 
                     "collection": "datasets", 
-                    "id": "f6c9908f-6bbc-11ea-bb74-7c67a222132e", 
+                    "id": "5b89575f-76bf-11ea-b5f7-7c67a222132e", 
                     "title": "bias:0"
                 }, 
                 {
                     "class": "H5L_TYPE_HARD", 
                     "collection": "datasets", 
-                    "id": "f6c99090-6bbc-11ea-bd92-7c67a222132e", 
+                    "id": "5b897e70-76bf-11ea-8f9c-7c67a222132e", 
                     "title": "kernel:0"
                 }
             ]
         }, 
-        "f6c9b79e-6bbc-11ea-a228-7c67a222132e": {
+        "5b897e71-76bf-11ea-81a8-7c67a222132e": {
             "alias": [
                 "/optimizer_weights"
             ], 
@@ -28620,29 +28620,29 @@
                 {
                     "class": "H5L_TYPE_HARD", 
                     "collection": "datasets", 
-                    "id": "f6c9b79f-6bbc-11ea-8461-7c67a222132e", 
+                    "id": "5b89a580-76bf-11ea-8e3a-7c67a222132e", 
                     "title": "Variable:0"
                 }, 
                 {
                     "class": "H5L_TYPE_HARD", 
                     "collection": "datasets", 
-                    "id": "f6c9deb0-6bbc-11ea-9e3d-7c67a222132e", 
+                    "id": "5b89a581-76bf-11ea-9656-7c67a222132e", 
                     "title": "Variable_1:0"
                 }, 
                 {
                     "class": "H5L_TYPE_HARD", 
                     "collection": "datasets", 
-                    "id": "f6c9deb1-6bbc-11ea-ac2a-7c67a222132e", 
+                    "id": "5b89cc8f-76bf-11ea-a4b3-7c67a222132e", 
                     "title": "Variable_2:0"
                 }, 
                 {
                     "class": "H5L_TYPE_HARD", 
                     "collection": "datasets", 
-                    "id": "f6ca05c0-6bbc-11ea-b53c-7c67a222132e", 
+                    "id": "5b89cc90-76bf-11ea-b725-7c67a222132e", 
                     "title": "Variable_3:0"
                 }
             ]
         }
     }, 
-    "root": "f6c7bbd1-6bbc-11ea-b522-7c67a222132e"
+    "root": "5b88bb1e-76bf-11ea-a9a5-7c67a222132e"
 }
