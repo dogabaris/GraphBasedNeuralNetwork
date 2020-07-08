@@ -10,6 +10,6 @@ namespace WebApi.Entities.ReqModels
         public User user { get; set; }
         public string workspace { get; set; }
         public int[] nodeDatas { get; set; }
-        public float[] matrix { get; set; }
+        public double[] matrix { get; set; }
 }
 }

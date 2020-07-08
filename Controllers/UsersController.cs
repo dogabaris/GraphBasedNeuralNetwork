@@ -834,6 +834,60 @@ namespace WebApi.Controllers
             return ret;
         }
 
+        private double[,] ChangeXtoYMatrix(double[] matrix)
+        {
+            double[,] result = new double[1, matrix.Count()];
+            for (int i = 0; i < matrix.Count(); i++)
+            {
+                result[0,i] = matrix[i];
+            }
+            return result;
+        }
+
+        private double[,] MatrixSum(double[,] matrix1, double[,] matrix2)
+        {
+            double[,] result = new double[matrix1.GetLength(0), matrix1.GetLength(1)];
+            for (int i = 0; i < matrix1.GetLength(0); i++)
+            {
+                for (int j = 0; j < matrix1.GetLength(1); j++)
+                {
+                    result[i, j] += matrix1[i, j] + matrix2[i, j];
+                }
+            }
+            return result;
+        }
+
+        private double[,] MatrixMultiply(double[,] matrix1, double[,] matrix2)
+        {
+            double[,] result = new double[matrix1.GetLength(0), matrix2.GetLength(1)];
+            for (int i = 0; i < matrix1.GetLength(0); i++)
+            {
+                for (int j = 0; j < matrix2.GetLength(1); j++)
+                {
+                    for (int k = 0; k < matrix1.GetLength(1); k++)
+                    {
+                        result[i, j] += matrix1[i, k] * matrix2[k, j];
+                    }
+                }
+            }
+            return result;
+        }
+
+        private double[,] TransformNodesToMatrix(List<Node> nodes)
+        {
+            var xCount = nodes.Max(n => n.x) + 1;
+            var yCount = nodes.Max(n => n.y) + 1;
+            double[,] result = new double[xCount, yCount];
+            for (int x = 0; x < xCount; x++)
+            {
+                for (int y = 0; y < yCount; y++)
+                {
+                    result[x,y] = nodes.First(n => n.x == x && n.y == y).data;
+                }
+            }
+            return result;
+        }
+
         [HttpPost("testmodel")]
         public async Task<IActionResult> TestModel([FromBody] TestModel testModel)
         {
@@ -844,6 +898,7 @@ namespace WebApi.Controllers
                 {
                     try
                     {
+                        var reversedInputMatrix = ChangeXtoYMatrix(testModel.matrix);
                         var layers1 = new List<string>();
                         var layers2 = new List<string>();
                         var layers = new HashSet<string>();
@@ -859,31 +914,45 @@ namespace WebApi.Controllers
                         layers2.RemoveAt(0);
                         layers = FindOrderedLayers(layers1, layers2, layers);
 
-                        //foreach (var layer in layers)
-                        //{
-                        //    var nodes = new List<Node>();
+                        //layers.Remove(layers.First());
+                        // input kernel output bias output 
+                        var iterator = 0;
+                        var tempMatrix = reversedInputMatrix;
 
-                        //    var cursor = await session.RunAsync(@"MATCH(n:" + layer + ") " +
-                        //        "WHERE n.workspace = '" + testModel.workspace +
-                        //        "' RETURN n");
+                        foreach (var layer in layers)
+                        {
+                            var nextNodes = new List<Node>();
 
-                        //    nodes = (await cursor.ToListAsync())
-                        //                            .Map<Node>().ToList();
-                        //    var xCount = testModel.matrix.Count();
-                        //    var yCount = nodes.GroupBy(n => n.y).Select(g => g.First()).Count();
-                        //    var outputMatrix = new float[xCount, yCount];
+                            var cursorRead = await session.RunAsync(@"MATCH(n:" + layer + ") " +
+                                "WHERE n.workspace = '" + testModel.workspace +
+                                "' RETURN n");
 
-                        //    for (var i = 0; i < testModel.matrix.Count(); i++)
-                        //    {
-                        //        var matrix = nodes.Where(n => n.y == i).ToList();
-                                
-                        //        foreach(var cell in matrix)
-                        //        {
-                        //            var outputMatrix[][] = testModel.matrix[i] * cell.y;
-                        //        }
+                            nextNodes = (await cursorRead.ToListAsync())
+                                                    .Map<Node>().ToList();
+                            if (iterator % 2 == 0) // yazma sırası
+                            {
+                                var cursorWrite = session.Run(@"MATCH(n:'" + layer + "' {workspace:'" + testModel.workspace + "'}) " +
+                                                                    "set n.data = " + JsonConvert.SerializeObject(tempMatrix) +
+                                                                    " return n");
+                            }
+                            else //hesap sırası
+                            {
+                                var nextMatrix = TransformNodesToMatrix(nextNodes);
+                                double[,] outputMatrix;
 
-                        //    }
-                        //}
+                                if (layer.Contains("bias") && !layer.Contains("output"))
+                                {
+                                    var reversedBiasMatrix = ChangeXtoYMatrix(testModel.matrix);
+                                    outputMatrix = MatrixSum(tempMatrix, reversedBiasMatrix);
+                                }
+                                else
+                                    outputMatrix = MatrixMultiply(tempMatrix, nextMatrix);
+
+                                tempMatrix = outputMatrix;
+                            }
+
+                            iterator++;
+                        }
                     }
                     catch (Exception ex)
                     {
