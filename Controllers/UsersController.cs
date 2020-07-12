@@ -931,9 +931,9 @@ namespace WebApi.Controllers
                                                     .Map<Node>().ToList();
                             if (iterator % 2 == 0) // yazma sırası
                             {
-                                var cursorWrite = session.Run(@"MATCH(n:'" + layer + "' {workspace:'" + testModel.workspace + "'}) " +
-                                                                    "set n.data = " + JsonConvert.SerializeObject(tempMatrix) +
-                                                                    " return n");
+                                var cursorWrite = session.Run(@"MATCH(n:" + layer + " {workspace:'" + testModel.workspace + "'}) " +
+                                                                    "set n.data = '" + JsonConvert.SerializeObject(tempMatrix) +
+                                                                    "' return n");
                             }
                             else //hesap sırası
                             {
