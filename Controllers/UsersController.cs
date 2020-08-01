@@ -843,6 +843,15 @@ namespace WebApi.Controllers
             }
             return result;
         }
+        private double[,] ChangeXtoYMatrix(double[,] matrix)
+        {
+            double[,] result = new double[matrix.GetLength(1), 1];
+            for (int i = 0; i < matrix.GetLength(1); i++)
+            {
+                result[i, 0] = matrix[0, i];
+            }
+            return result;
+        }
 
         private double[,] MatrixSum(double[,] matrix1, double[,] matrix2)
         {
@@ -857,6 +866,13 @@ namespace WebApi.Controllers
             return result;
         }
 
+        private double ReLuActivation(double input)
+        {
+            if (input <= 0)
+                return 0;
+            return input;
+        }
+
         private double[,] MatrixMultiply(double[,] matrix1, double[,] matrix2)
         {
             double[,] result = new double[matrix1.GetLength(0), matrix2.GetLength(1)];
@@ -866,7 +882,7 @@ namespace WebApi.Controllers
                 {
                     for (int k = 0; k < matrix1.GetLength(1); k++)
                     {
-                        result[i, j] += matrix1[i, k] * matrix2[k, j];
+                        result[i, j] += ReLuActivation(matrix1[i, k] * matrix2[k, j]);
                     }
                 }
             }
@@ -883,6 +899,56 @@ namespace WebApi.Controllers
                 for (int y = 0; y < yCount; y++)
                 {
                     result[x,y] = nodes.First(n => n.x == x && n.y == y).data;
+                }
+            }
+            return result;
+        }
+
+        private static double[] Softmax(double[] oSums)
+
+        {
+            double max = oSums[0];
+
+            for (int i = 0; i < oSums.Length; ++i)
+
+                if (oSums[i] > max) max = oSums[i];
+
+            double scale = 0.0;
+
+            for (int i = 0; i < oSums.Length; ++i)
+
+                scale += Math.Exp(oSums[i] - max);
+
+            double[] result = new double[oSums.Length];
+
+            for (int i = 0; i < oSums.Length; ++i)
+
+                result[i] = Math.Exp(oSums[i] - max) / scale;
+
+            return result;
+
+        }
+
+        private double[] SoftMax2(double[] input)
+        {
+            var input_exp = input.Select(Math.Exp).ToArray();
+
+            var sum_input_exp = input_exp.Sum();
+
+            return input_exp.Select(i => i / sum_input_exp).ToArray();
+        }
+
+        private double[] To1DArray(double[,] input)
+        {
+            int size = input.Length;
+            double[] result = new double[size];
+
+            int write = 0;
+            for (int i = 0; i <= input.GetUpperBound(0); i++)
+            {
+                for (int z = 0; z <= input.GetUpperBound(1); z++)
+                {
+                    result[write++] = input[i, z];
                 }
             }
             return result;
@@ -934,6 +1000,11 @@ namespace WebApi.Controllers
                                 var cursorWrite = session.Run(@"MATCH(n:" + layer + " {workspace:'" + testModel.workspace + "'}) " +
                                                                     "set n.data = '" + JsonConvert.SerializeObject(tempMatrix) +
                                                                     "' return n");
+                                if (layer == layers.Last())
+                                {
+                                    var output = Softmax(To1DArray(tempMatrix));
+                                    var output2 = SoftMax2(To1DArray(tempMatrix));
+                                }
                             }
                             else //hesap sırası
                             {
@@ -942,8 +1013,8 @@ namespace WebApi.Controllers
 
                                 if (layer.Contains("bias") && !layer.Contains("output"))
                                 {
-                                    var reversedBiasMatrix = ChangeXtoYMatrix(testModel.matrix);
-                                    outputMatrix = MatrixSum(tempMatrix, reversedBiasMatrix);
+                                    var reversedBiasMatrix = ChangeXtoYMatrix(tempMatrix);
+                                    outputMatrix = MatrixSum(reversedBiasMatrix, nextMatrix);
                                 }
                                 else
                                     outputMatrix = MatrixMultiply(tempMatrix, nextMatrix);
