@@ -37,6 +37,16 @@ export class UserService {
     }
   }
 
+  transferModel(fromWorkspace: any, toWorkspace: any) {
+    var user = JSON.parse(localStorage.getItem('currentUser'));
+    if (user && user.token) {
+      return this.http.post(`${config.apiUrl}/users/transfermodel?toWorkspace=` + toWorkspace + "&fromWorkspace=" + fromWorkspace, user);
+    }
+    else {
+      this.toastr.error("Giriş yapın!");
+    }
+  }
+
   importMnistH5Model() {
     var user = JSON.parse(localStorage.getItem('currentUser'));
     if (user && user.token) {

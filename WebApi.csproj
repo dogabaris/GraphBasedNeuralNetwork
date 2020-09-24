@@ -23,4 +23,9 @@
     <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />
     <PackageReference Include="NumSharp" Version="0.20.5" />
   </ItemGroup>
+  <ItemGroup>
+    <None Update="Content\arrows-gh-pages\graph-editor.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 </Project>

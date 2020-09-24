@@ -20,6 +20,7 @@ export class HomeComponent implements OnInit {
   workspaces: any = [];
   exportCypherModel: string;
   @ViewChild('exportCypherEl', null) exportCypherEl: ElementRef;
+  @ViewChild('transfermodelEl', null) transferModelEl: ElementRef;
 
   emptyObj1: any;
   emptyObj: any;
@@ -43,6 +44,7 @@ export class HomeComponent implements OnInit {
   stopBigGraphRender: any;
   uploadedImg: any;
   predicateMatrix: any;
+  toWorkspace: any;
 
   testNode1 = 0;
   testNode2 = 0;
@@ -464,6 +466,25 @@ export class HomeComponent implements OnInit {
 
   showError(msg: any) {
     this.toastr.error(msg, null, { disableTimeOut: true, positionClass: 'toast-top-center', closeButton: true, enableHtml: true });
+  }
+
+  showTransferModelPopUp() {
+    if (this.exportCypherEl && this.exportCypherEl.nativeElement.classList.contains('hide')) {
+      this.transferModelEl.nativeElement.classList.add("hide");
+    }
+    this.transferModelEl.nativeElement.classList.remove("hide");
+  }
+
+  transfermodel() {
+    this.userService.transferModel(this.selectedModel, this.toWorkspace).pipe(first()).subscribe(result => {
+      console.log(result);
+      this.showSuccess("Model başarıyla transfer edildi!");
+      this.showTransferModelPopUp();
+    },
+    err => {
+      console.log("Error occured!");
+      this.showError("Model transfer edilirken sorun oluştu!");
+    });
   }
 
   createModel() {

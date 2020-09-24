@@ -420,7 +420,7 @@ window.onload = function()
 
     d3.select(window).on("resize", draw);
     d3.select("#internalScale" ).on("change", changeInternalScale);
-    d3.select( "#exportMarkupButton" ).on( "click", exportMarkup );
+    d3.select("#exportMarkupButton").on("click", exportMarkup);
 	  d3.select( "#exportCypherButton" ).on( "click", exportCypher );
     d3.select( "#chooseStyleButton" ).on( "click", chooseStyle );
     d3.selectAll( ".modal-dialog" ).on( "click", function ()

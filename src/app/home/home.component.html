@@ -17,9 +17,9 @@
     <div class="tools form-inline well" id="tools">
       <button class="btn" id="add_node_button"><i class="icon-plus"></i> Node Ekle</button>
       <button class="btn" id="exportCypherButton">Cypher Sorgusu</button>
-      <button class="btn hide" id="exportMarkupButton">Export Markup</button>
+      <button class="btn hide" id="exportMarkupButton">Markup Çıktı Al</button>
       <a class="btn hide" id="downloadSvgButton" download="arrows.svg">Download SVG</a>
-      <button class="btn hide" id="chooseStyleButton">Choose Style</button>
+      <button class="btn hide" id="chooseStyleButton">Stil Seç</button>
       <label for="internalScale" style="padding-left: 15px;">Ölçek</label>
       <input id="internalScale" type="range" min="0.1" max="5" value="1" step="0.01">
     </div>
@@ -27,6 +27,7 @@
     <div *ngIf="showTrainTools" class="tools form-inline well" id="train-tools">
       <button class="btn pull-right" (click)="deleteModel();"><i class="icon-warning-sign"></i> Modeli Sil</button>
       <button class="btn pull-right" (click)="clearBigGraphFnc();"><i class="icon-warning-sign"></i> Modeli Temizle</button>
+      <button class="btn pull-right" (click)="showTransferModelPopUp();"><i class="icon-warning-sign"></i> Transfer Et</button>
       <button *ngIf="showBigGraphEditor == true" class="btn" id="big_graph_button" (click)="stopBigGraphRenderFnc()"><i class="icon-stop"></i> Renderı Durdur</button>
       <button *ngIf="showBigGraphEditor == true" class="btn" id="big_graph_button" (click)="toggleLabelsFnc()"><i class="icon-plus"></i> Verileri Göster</button>
       <button *ngIf="showBigGraphEditor == false  && isPause == false" class="btn pull-right" (click)="cancelRefreshOfViewModel();"><i class="icon-stop"></i> Canlı Takibi Durdur</button>
@@ -80,7 +81,31 @@
       <a href="#" class="btn btn-primary" id="saveStyle">Save</a>
     </div>
   </div>-->
-    <div class="modal hide pop-up-editor node" tabindex="-1">
+    <div class="modal hide pop-up-editor transfermodel" #transfermodelEl id="transfermodel" tabindex="-1">
+      <div class="modal-header">
+        <h3>Transfer Edilecek Workspace Seç</h3>
+      </div>
+      <div class="top-right-btn-bar">
+        Transfer edilecek modele bir isim verin.
+      </div>
+      <div class="modal-body">
+        <div class="form-horizontal">
+          <div class="control-group">
+            <label class="control-label">Transfer Edilecek Workspace:</label>
+            <div class="controls">
+              <input id="network_caption" [(ngModel)]="toWorkspace" type="text" placeholder="Örn: 200">
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <a href="#" class="btn cancel" (click)="showTransferModelPopUp();">İptal Et</a>
+        <a href="#" class="btn btn-primary" (click)="transfermodel();">Transfer Et</a>
+      </div>
+    </div>
+
+    <div class="modal hide pop-up-editor node">
+      <!--tabindex="-1"-->
       <div class="modal-header">
         <h3>Düğüm Düzenle</h3>
       </div>

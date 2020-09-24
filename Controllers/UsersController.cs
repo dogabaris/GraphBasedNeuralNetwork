@@ -212,8 +212,39 @@ namespace WebApi.Controllers
                     return BadRequest(ex);
                 }
             }
+
             return Ok();
         }
+
+        [HttpPost("transfermodel")]
+        public async Task<IActionResult> TransferModel([FromBody] User user, string fromWorkspace, string toWorkspace)
+        {
+            string cypherQuery = string.Format(@"MATCH path=(doc)-[*]-()
+                                                WHERE doc.workspace = '{0}'
+                                                WITH doc, collect(path) as paths
+                                                LIMIT 1
+                                                CALL apoc.refactor.cloneSubgraphFromPaths(paths) YIELD input, output, error
+                                                SET output.workspace = '{1}'
+                                                WITH output
+                                                RETURN output", fromWorkspace, toWorkspace);
+            using (var session = _driver.Session())
+            {
+                try
+                {
+                    var cursor = await session.RunAsync(cypherQuery);
+                }
+                catch (Exception ex)
+                {
+                    return BadRequest(ex);
+                }
+            }
+
+            var res = _userService.CreateModel(toWorkspace, user);
+            if (res.Status == "200")
+                return Ok();
+
+            return BadRequest();
+        }   
 
         [AllowAnonymous]
         [HttpPost("importcnnh5model")]
