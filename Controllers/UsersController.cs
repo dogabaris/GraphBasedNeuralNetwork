@@ -744,7 +744,8 @@ namespace WebApi.Controllers
 
                 try
                 {
-                    var cursor = await session.RunAsync(@"MATCH(i: input)                                                          WHERE i.workspace = '" + model +
+                    var cursor = await session.RunAsync(@"MATCH(i: input)
+                                                          WHERE i.workspace = '" + model +
                                                           "' RETURN i");
 
                     inputPerceptron = (await cursor.ToListAsync())
@@ -756,7 +757,8 @@ namespace WebApi.Controllers
                 }
                 try
                 {
-                    var cursor = await session.RunAsync(@"MATCH(o: output)                                                          WHERE o.workspace = '" + model +
+                    var cursor = await session.RunAsync(@"MATCH(o: output)
+                                                          WHERE o.workspace = '" + model +
                                                           "' RETURN o");
 
                     outputPerceptron = (await cursor.ToListAsync())
@@ -768,7 +770,8 @@ namespace WebApi.Controllers
                 }
                 try
                 {
-                    var cursor = await session.RunAsync(@"MATCH(s: setting)                                                          WHERE s.workspace = '" + model +
+                    var cursor = await session.RunAsync(@"MATCH(s: setting)
+                                                          WHERE s.workspace = '" + model +
                                                           "' RETURN s");
 
                     settingNode = (await cursor.ToListAsync())
@@ -1071,7 +1074,8 @@ namespace WebApi.Controllers
                 {
                     try
                     {
-                        var cursor = await session.RunAsync(@"MATCH(n)                                                          WHERE n.workspace = '" + testModel.workspace +
+                        var cursor = await session.RunAsync(@"MATCH(n)
+                                                          WHERE n.workspace = '" + testModel.workspace +
                                                               "' RETURN id(n)");
 
                         nodeIds = (await cursor.ToListAsync())
