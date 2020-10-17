@@ -24,6 +24,9 @@ using ServiceStack.Text;
 using Neo4jClient;
 using System.Threading.Tasks;
 using System.Globalization;
+using Neo4jClient.Cypher;
+using Node = WebApi.Entities.Neo4j.Node;
+using ServiceStack;
 
 namespace WebApi.Controllers
 {
@@ -47,7 +50,7 @@ namespace WebApi.Controllers
 
         [AllowAnonymous]
         [HttpPost("authenticate")]
-        public IActionResult Authenticate([FromBody]User userParam)
+        public IActionResult Authenticate([FromBody] User userParam)
         {
             var user = _userService.Authenticate(userParam.Username, userParam.Password);
 
@@ -244,7 +247,7 @@ namespace WebApi.Controllers
                 return Ok();
 
             return BadRequest();
-        }   
+        }
 
         [AllowAnonymous]
         [HttpPost("importcnnh5model")]
@@ -720,7 +723,7 @@ namespace WebApi.Controllers
 
         [AllowAnonymous]
         [HttpPost("register")]
-        public IActionResult Register([FromBody]User userParam)
+        public IActionResult Register([FromBody] User userParam)
         {
             var result = _userService.Register(userParam.Username, userParam.Password, userParam.FirstName, userParam.LastName);
 
@@ -873,7 +876,7 @@ namespace WebApi.Controllers
             double[,] result = new double[1, matrix.Count()];
             for (int i = 0; i < matrix.Count(); i++)
             {
-                result[0,i] = matrix[i];
+                result[0, i] = matrix[i];
             }
             return result;
         }
@@ -923,7 +926,7 @@ namespace WebApi.Controllers
             return result;
         }
 
-        private double[,] TransformNodesToMatrix(List<Node> nodes)
+        private double[,] TransformNodesToMatrix(List<Entities.Neo4j.Node> nodes)
         {
             var xCount = nodes.Max(n => n.x) + 1;
             var yCount = nodes.Max(n => n.y) + 1;
@@ -932,7 +935,7 @@ namespace WebApi.Controllers
             {
                 for (int y = 0; y < yCount; y++)
                 {
-                    result[x,y] = nodes.First(n => n.x == x && n.y == y).data;
+                    result[x, y] = nodes.First(n => n.x == x && n.y == y).data;
                 }
             }
             return result;
@@ -961,6 +964,11 @@ namespace WebApi.Controllers
 
             return result;
 
+        }
+
+        private float Sigmoid(float value)
+        {
+            return 1.0f / (1.0f + (float)Math.Exp(-value));
         }
 
         private double[] SoftMax2(double[] input)
@@ -1021,7 +1029,7 @@ namespace WebApi.Controllers
 
                         foreach (var layer in layers)
                         {
-                            var nextNodes = new List<Node>();
+                            var nextNodes = new List<Entities.Neo4j.Node>();
 
                             var cursorRead = await session.RunAsync(@"MATCH(n:" + layer + ") " +
                                 "WHERE n.workspace = '" + testModel.workspace +
@@ -1092,7 +1100,7 @@ namespace WebApi.Controllers
                 {
                     try
                     {
-                        var cursor = await session.RunAsync(String.Format("MATCH(n) WHERE n.workspace = '{0}' SET n.data = 0", testModel.workspace));
+                        var cursor = session.Run(String.Format("MATCH(n) WHERE n.workspace = '{0}' SET n.data = 0", testModel.workspace));
                     }
                     catch (Exception ex)
                     {
@@ -1108,7 +1116,7 @@ namespace WebApi.Controllers
                     {
                         try
                         {
-                            var cursor = await session.RunAsync(String.Format("Start n=NODE({0}) MATCH(n)-[r]->(n2) SET n.data = {1}", id, testModel.nodeDatas.GetValue(it)));
+                            var cursor = session.Run(String.Format("Start n=NODE({0}) MATCH(n)-[r]->(n2) SET n.data = {1}", id, testModel.nodeDatas.GetValue(it)));
                         }
                         catch (Exception ex)
                         {
@@ -1128,7 +1136,45 @@ namespace WebApi.Controllers
                     {
                         try
                         {
-                            var cursor = session.Run(String.Format("Start n=NODE({0}) MATCH(n)-[r]->(n2) SET n2.data = n2.data + ((n.data * r.kernel) + r.bias) RETURN n,r,n2", id));
+                            var readCursor = session.Run(String.Format("Start n=NODE({0}) MATCH(n)-[r]->(n2) RETURN n, r, n2", id));
+                            var records = new List<IRecord>();
+                            foreach (var record in readCursor)
+                            {
+                                records.Add(record);
+                                //foreach (var recordval in record.values)
+                                //{
+                                //    graphjson.add(recordval);
+                                //}
+                            }
+
+                            var iterator = 0;
+                            foreach (var record in records)
+                            {
+                                var graphJson = record.Values;
+                                var n2Data = graphJson.Count > 0 ? ((INode)graphJson.FirstOrDefault(x => x.Key == "n2").Value).Properties.GetValueOrDefault("data") : null;
+                                var n2Label = graphJson.Count > 0 ? ((INode)graphJson.FirstOrDefault(x => x.Key == "n2").Value).Labels.FirstOrDefault() : null;
+                                var n2Id = ((INode)graphJson.FirstOrDefault(x => x.Key == "n2").Value).Id;
+                                var nData = graphJson.Count > 0 ? ((INode)graphJson.FirstOrDefault(x => x.Key == "n").Value).Properties.GetValueOrDefault("data") : null;
+                                var rKernel = graphJson.Count > 0 ? ((IRelationship)graphJson.FirstOrDefault(x => x.Key == "r").Value).Properties.GetValueOrDefault("kernel") : null;
+                                var rBias = graphJson.Count > 0 ? ((IRelationship)graphJson.FirstOrDefault(x => x.Key == "r").Value).Properties.GetValueOrDefault("bias") : null;
+                                double res = 0;
+                                if (n2Label == "output" && (n2Data != null || nData != null || rKernel != null || rBias != null))
+                                {
+                                    res = float.Parse(n2Data.ToString()) + (float.Parse(nData.ToString()) * float.Parse(rKernel.ToString()));
+                                    if (iterator == records.Count-1)
+                                        res += float.Parse(rBias.ToString());
+                                    res = Sigmoid((float)res);
+                                }
+                                else if ((n2Data != null || nData != null || rKernel != null || rBias != null))
+                                {
+                                    res = float.Parse(n2Data.ToString()) + (float.Parse(nData.ToString()) * float.Parse(rKernel.ToString()));
+                                    if (iterator == records.Count-1)
+                                            res += float.Parse(rBias.ToString());
+                                    res = Math.Tanh(res);
+                                }
+                                var cursor = session.Run(String.Format("Start n=NODE({0}) MATCH(n) SET n.data = {1}", n2Id, res.ToString(CultureInfo.InvariantCulture)));
+                                iterator++;
+                            }
 
                         }
                         catch (Exception ex)

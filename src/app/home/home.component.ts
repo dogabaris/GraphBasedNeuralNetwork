@@ -43,7 +43,7 @@ export class HomeComponent implements OnInit {
   events: any;
   stopBigGraphRender: any;
   uploadedImg: any;
-  predicateMatrix: any;
+  predicateMatrix: any = null;
   toWorkspace: any;
 
   testNode1 = 0;
@@ -120,7 +120,7 @@ export class HomeComponent implements OnInit {
       gravity: -1,
       theta: 0.8,
     });
-    var colors = { Member: 0xff0000, Topic: 0x000000, Group: 0x0000ff };
+    var colors = { Member: 0x000000, Topic: 0x000000, Group: 0x0000ff };
     _this.graphics = Viva.Graph.View.webglGraphics();
 
     _this.events = Viva.Graph.webglInputEvents(_this.graphics, _this.graph);
@@ -135,7 +135,7 @@ export class HomeComponent implements OnInit {
 
     _this.graphics.node(function (node: any) {
       console.log("node", node)
-      var color = colors[node.data] || 0x0fffff;
+      var color = 0x00ffff; //colors[node.data] || 
       var degree = node.links.length;
       var size = Math.log(degree + 1) * 10;
       console.log("color", color, "data", node.data, "size", size, "degree", degree)
@@ -176,7 +176,8 @@ export class HomeComponent implements OnInit {
       graph.forEachNode(function (node: any) {
         var label = document.createElement('span');
         label.classList.add('node-label');
-        label.innerText = node.id.labels[0];
+          label.innerText = node.id.labels[0];
+          label.style['color'] = 'black';
         labels[node.id] = label;
         container.appendChild(label);
       });
@@ -274,16 +275,19 @@ export class HomeComponent implements OnInit {
     dataNodes.push(this.testNode1);
     dataNodes.push(this.testNode2);
     dataNodes.push(this.testNode3);
-    console.log(this.predicateMatrix.values())
+    console.log("testNodes: ", this.testNode1, this.testNode2, this.testNode3);
+    //console.log(this.predicateMatrix.values())
 
     this.userService.testModel(this.selectedModel, dataNodes, this.predicateMatrix).pipe(first()).subscribe(
       res => {
         console.log(res);
         this.showSuccess("Model test edildi!");
+        this.predicateMatrix = null;
       },
       err => {
         console.log("Error occured");
         this.showError("Model test edilirken sorun oluştu!");
+        this.predicateMatrix = null;
       }
     );
   }
@@ -414,14 +418,14 @@ export class HomeComponent implements OnInit {
           "size": "data"
         },
         "output": {
-          "caption": "data",
+          "caption": "output",
           "size": "data"
         }
       },
       relationships: {
         "related": {
-          "caption": "weight",
-          "thickness": "weight"
+          "caption": "bias",
+          "thickness": "kernel"
         }
       },
 

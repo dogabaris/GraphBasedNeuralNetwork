@@ -1525,15 +1525,16 @@ gd = {};
                 .attr("class", "type")
                 .attr("text-anchor", "middle")
                 .attr("baseline-shift", "30%")
+                .attr("id", "reltype")
                 .attr("alignment-baseline", "alphabetic");
 
             relationshipType
                 .attr("transform", rotateIfRightToLeft)
                 .attr("x", function(d) { return side( d ) * d.arrow.apex.x; } )
-                .attr("y", function(d) { return side( d ) * d.arrow.apex.y; } )
+                .attr("y", function (d) { return side(d) * d.arrow.apex.y; })
                 .attr( "font-size", function ( d ) { return d.model.style( "font-size" ); } )
-                .attr( "font-family", function ( d ) { return d.model.style( "font-family" ); } )
-                .text( function ( d ) { return d.model.relationshipType(); } );
+                .attr("font-family", function (d) { return d.model.style("font-family"); })
+                .text(function (d) { return d.model.relationshipType(); });
         }
 
         function renderProperties( entities, descriminator, view )

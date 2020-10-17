@@ -15,8 +15,9 @@
     font-size: 14px;
     width: 2px;
     margin: 10px;
-    background-color: rgba(0, 0, 0, 0.3);
+    background-color: rgba(0, 0, 0, 1);
     border: none;
+    color: rgba(0, 0, 0, 1);
 }
 
 .graph-diagram-markup .properties {
