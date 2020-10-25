@@ -270,24 +270,24 @@ export class HomeComponent implements OnInit {
     );
   }
 
-  testModel() {
+    testModel() {
     var dataNodes = new Array<any>();
-    dataNodes.push(this.testNode1);
-    dataNodes.push(this.testNode2);
-    dataNodes.push(this.testNode3);
-    console.log("testNodes: ", this.testNode1, this.testNode2, this.testNode3);
+    if (this.predicateMatrix == null || this.predicateMatrix.length == 0) {
+        dataNodes.push(this.testNode1);
+        dataNodes.push(this.testNode2);
+        dataNodes.push(this.testNode3);
+        console.log("testNodes: ", this.testNode1, this.testNode2, this.testNode3);
+    }
     //console.log(this.predicateMatrix.values())
 
     this.userService.testModel(this.selectedModel, dataNodes, this.predicateMatrix).pipe(first()).subscribe(
       res => {
-        console.log(res);
-        this.showSuccess("Model test edildi!");
-        this.predicateMatrix = null;
+            console.log(res);
+            this.showSuccess("Model test edildi! Sonuç: " + res);
       },
       err => {
         console.log("Error occured");
         this.showError("Model test edilirken sorun oluştu!");
-        this.predicateMatrix = null;
       }
     );
   }
@@ -425,7 +425,7 @@ export class HomeComponent implements OnInit {
       relationships: {
         "related": {
           "caption": "bias",
-          "thickness": "kernel"
+          "thickness": "weight" //kernel
         }
       },
 

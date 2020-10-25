@@ -999,7 +999,7 @@ namespace WebApi.Controllers
         [HttpPost("testmodel")]
         public async Task<IActionResult> TestModel([FromBody] TestModel testModel)
         {
-            if (testModel.matrix != null)
+            if (testModel.matrix != null && testModel.nodeDatas.Length == 0)
             {
 
                 using (var session = _driver.Session())
@@ -1044,8 +1044,10 @@ namespace WebApi.Controllers
                                                                     "' return n");
                                 if (layer == layers.Last())
                                 {
-                                    var output = Softmax(To1DArray(tempMatrix));
                                     var output2 = SoftMax2(To1DArray(tempMatrix));
+                                    var maxValue = output2.Min();
+                                    var maxIndex = output2.ToList().IndexOf(maxValue);
+                                    return Ok(maxIndex);
                                 }
                             }
                             else //hesap sırası
