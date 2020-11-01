@@ -26,8 +26,6 @@ svg.graphdiagram {
 }
 
     .modal.export-markup .modal-body {
-        overflow: hidden !important;
-        max-height: 70% !important;
     }
 
 p.button-row {

@@ -44,7 +44,8 @@ export class HomeComponent implements OnInit {
   stopBigGraphRender: any;
   uploadedImg: any;
   predicateMatrix: any = null;
-  toWorkspace: any;
+    toWorkspace: any;
+  sprintf = require('sprintf-js').sprintf
 
   testNode1 = 0;
   testNode2 = 0;
@@ -76,6 +77,67 @@ export class HomeComponent implements OnInit {
     reader.readAsDataURL(files); //files.item(0)
   }
 
+  editModel() {
+    var neo = neo4j.v1;
+    var driver = neo.driver("bolt://localhost:7687", neo.auth.basic("neo4j", "password"));
+    var sessionlocal = driver.session();
+    var _this = this;
+    //<dt>data < /dt>
+    //<dd> 0 < /dd>
+    //<dt> workspace < /dt>
+    //<dd> nand < /dd>
+
+    //<dt>weight < /dt>
+    //< dd > 0 < /dd>
+    var editModelMarkupStart = `<ul class="graph-diagram-markup" data-internal-scale="1" data-external-scale="1">`;
+    var editModelMarkupEnd = `</ul>`;
+    var getRelRes: any[] = [];
+    var getNodeRes: any[] = [];
+    var editModelMarkup = editModelMarkupStart;
+
+    var relResult = {
+        onNext: function (record: any) {
+            console.log("Rel Iterasyon ", record);
+            getRelRes.push(record);
+        },
+        onCompleted: function (data: any) {
+
+            for (var i = 0; i < getRelRes.length; i++) {
+                var editModelRelationship = `<li class="relationship" data-from="${getRelRes[i]._fields[1].start.low}" data-to="${getRelRes[i]._fields[1].end.low}">
+                <span class="type"> ${ getRelRes[i]._fields[1].type} </span>
+                <dl class="properties">
+                   
+                </dl>
+            </li>`;
+                editModelMarkup += editModelRelationship;
+            }
+            editModelMarkup += editModelMarkupEnd;
+            console.log("Model markup: ", editModelMarkup);
+        }
+    };
+
+    var nodeResult = {
+        onNext: function (record: any) {
+            console.log("Node Iterasyon ", record);
+            getNodeRes.push(record);
+        },
+        onCompleted: function () {
+            for (var i = 0; i < getNodeRes.length; i++) {
+                var editModelNode = `<li class="node" data-node-id="${getNodeRes[i]._fields[0].identity.low}" data-x="129.0391845703125" data-y="-77">
+                <span class="caption"> ${getNodeRes[i]._fields[0].labels[0]} </span>
+                    <dl class="properties" >
+                    
+                    </dl>
+                </li>`;
+                editModelMarkup += editModelNode;
+            }
+            sessionlocal.run("MATCH(n)-[r]->(n2) where n.workspace = '" + this.selectedModel + "' RETURN n, r, n2").subscribe(relResult);
+        }
+    };
+      
+    sessionlocal.run("MATCH(n) where n.workspace = '" + this.selectedModel + "' RETURN n").subscribe(nodeResult);
+  }
+   
   clearBigGraphFnc() {
     this.clearBigGraph();
   }
