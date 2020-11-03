@@ -55,7 +55,7 @@
                 <h3>Edit/Export markup</h3>
             </div>
             <div class="modal-body">
-                <textarea class="code" style="width: -webkit-fill-available;">Some text</textarea>
+                <textarea class="code" id="markupAreaId" [(ngModel)]="markupModel" style="width: -webkit-fill-available;">{{markupModel}}</textarea>
             </div>
             <div class="modal-footer">
                 <a href="#" class="btn cancel">Cancel</a>
@@ -172,10 +172,12 @@
             <div class="modal-body">
                 <textarea class="code" type="text" id="exportCypherTextId" style="width: -webkit-fill-available;" (input)="exportCypherModel = $event.target.value"
                           name="exportCypherModel" [(ngModel)]="exportCypherModel">{{exportCypherModel}}</textarea>
+                <input [(ngModel)]="updateWorkspace" type="text" placeholder="Güncellenecek Model">
             </div>
             <div class="modal-footer">
                 <a href="#" class="btn cancel">Kapat</a>
                 <a href="#" target="_blank" class="btn" id="open_console">Konsolda Aç</a>
+                <a class="btn btn-primary" (click)="updateModel()">Model Güncelle</a>
                 <a class="btn btn-primary" (click)="createModel()">Model Oluştur</a>
             </div>
         </div>

@@ -46,10 +46,35 @@ export class HomeComponent implements OnInit {
     predicateMatrix: any = null;
     toWorkspace: any;
     sprintf = require('sprintf-js').sprintf
+    updateWorkspace: any;
 
     testNode1 = 0;
     testNode2 = 0;
     testNode3 = 0;
+
+    updateModel() {
+        setTimeout(() => {
+            if (this.exportCypherEl && this.exportCypherEl.nativeElement.classList.contains('hide')) {
+                console.log("exportCypherElement is hided");
+            } else {
+                var mdl = document.getElementById("exportCypherTextId") as any;
+                console.log("exportCypherModel: ", mdl.value);
+                this.exportCypherModel = mdl.value;
+
+                this.userService.updateModel(this.exportCypherModel, this.updateWorkspace).subscribe(
+                    res => {
+                        console.log(res);
+                        this.showSuccess("Model başarıyla güncellendi!");
+                        this.exportCypherEl.nativeElement.classList.add("hide");
+                    },
+                    err => {
+                        console.log("Error occured");
+                        this.showError("Model güncellenemedi!");
+                    }
+                );
+            }
+        }, 300);
+    }
 
     handleFileInput(this: any, files: any) {
         var _this = this;
@@ -94,7 +119,8 @@ export class HomeComponent implements OnInit {
         var getRelRes: any[] = [];
         var getNodeRes: any[] = [];
         var editModelMarkup = editModelMarkupStart;
-
+        var dataX = 200;
+        var dataY = 0;
 
         sessionlocal.run("MATCH(n) where n.workspace = '" + this.selectedModel + "' RETURN n").subscribe({
             onNext: function (record: any) {
@@ -110,7 +136,7 @@ export class HomeComponent implements OnInit {
                         properties += "<dd>" + getNodeRes[i]._fields[0].properties[keys[j]] + "</dd>"
                     }
 
-                    var editModelNode = `<li class="node" data-node-id="${getNodeRes[i]._fields[0].identity.low}" data-x="129.0391845703125" data-y="-77">
+                    var editModelNode = `<li class="node" data-node-id="${getNodeRes[i]._fields[0].identity.low}" data-x="${dataX + (i * 50)}" data-y="${dataY + (i * 50)}">
                     <span class="caption">${getNodeRes[i]._fields[0].labels[0]}</span>
                         <dl class="properties">${properties}</dl>
                     </li>`;
@@ -143,6 +169,9 @@ export class HomeComponent implements OnInit {
                 }
                 editModelMarkup += editModelMarkupEnd;
                 console.log("Model markup: ", editModelMarkup);
+                localStorage.setItem("graph-diagram-markup", editModelMarkup);
+                document.getElementById("save_markup").click();
+                location.reload();
             }
         });
     }

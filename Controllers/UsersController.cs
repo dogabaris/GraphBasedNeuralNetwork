@@ -1163,15 +1163,15 @@ namespace WebApi.Controllers
                                 if (n2Label == "output" && (n2Data != null || nData != null || rKernel != null || rBias != null))
                                 {
                                     res = float.Parse(n2Data.ToString()) + (float.Parse(nData.ToString()) * float.Parse(rKernel.ToString()));
-                                    if (iterator == records.Count-1)
+                                    if (iterator == records.Count - 1)
                                         res += float.Parse(rBias.ToString());
                                     res = Sigmoid((float)res);
                                 }
                                 else if ((n2Data != null || nData != null || rKernel != null || rBias != null))
                                 {
                                     res = float.Parse(n2Data.ToString()) + (float.Parse(nData.ToString()) * float.Parse(rKernel.ToString()));
-                                    if (iterator == records.Count-1)
-                                            res += float.Parse(rBias.ToString());
+                                    if (iterator == records.Count - 1)
+                                        res += float.Parse(rBias.ToString());
                                     res = Math.Tanh(res);
                                 }
                                 var cursor = session.Run(String.Format("Start n=NODE({0}) MATCH(n) SET n.data = {1}", n2Id, res.ToString(CultureInfo.InvariantCulture)));
@@ -1188,6 +1188,45 @@ namespace WebApi.Controllers
             }
 
             return Ok();
+        }
+
+        [HttpPost("updatemodel")]
+        public async Task<IActionResult> UpdateModelAsync([FromBody] UpdateModel updateModel)
+        {
+            var resultJson = "";
+
+            if (updateModel.cypherQuery.Contains("workspace") && !string.IsNullOrWhiteSpace(updateModel.cypherQuery))
+            {
+                using (var session = _driver.Session())
+                {
+                    try
+                    {
+                        string delCypherQuery = string.Format("match(n) where n.workspace = '{0}' detach delete n", updateModel.workspace);
+
+                        try
+                        {
+                            var delCursor = await session.RunAsync(delCypherQuery);
+                            var insertCursor = await session.RunAsync(updateModel.cypherQuery);
+                        }
+                        catch (Exception ex)
+                        {
+                            return BadRequest(ex);
+                        }
+
+                    }
+                    catch (Exception ex)
+                    {
+                        System.IO.File.WriteAllText(@"C:\Users\Public\CnnCypherQueryERROR.txt", ex.ToString());
+                        return BadRequest(ex);
+                    }
+                }
+
+                return Ok();
+            }
+            else
+            {
+                return BadRequest("Düğümlere 'workspace' özelliği eklenmemiş ya da boş cypher sorgusu ile model oluşturulmaya çalışılmıştır!");
+            }
         }
 
         [HttpPost("createmodel")]
