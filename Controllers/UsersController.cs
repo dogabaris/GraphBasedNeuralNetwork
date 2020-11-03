@@ -1199,9 +1199,11 @@ namespace WebApi.Controllers
             {
                 using (var session = _driver.Session())
                 {
-                    try
+                    try 
                     {
-                        string delCypherQuery = string.Format("match(n) where n.workspace = '{0}' detach delete n", updateModel.workspace);
+                        var workspace = Regex.Match(updateModel.cypherQuery, "(?<=workspace:')(.*?)(?=\')")?.Value ?? "";
+                        
+                        string delCypherQuery = string.Format("match(n) where n.workspace = '{0}' detach delete n", workspace);
 
                         try
                         {

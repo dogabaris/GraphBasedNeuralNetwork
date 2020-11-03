@@ -46,7 +46,6 @@ export class HomeComponent implements OnInit {
     predicateMatrix: any = null;
     toWorkspace: any;
     sprintf = require('sprintf-js').sprintf
-    updateWorkspace: any;
 
     testNode1 = 0;
     testNode2 = 0;
@@ -61,7 +60,7 @@ export class HomeComponent implements OnInit {
                 console.log("exportCypherModel: ", mdl.value);
                 this.exportCypherModel = mdl.value;
 
-                this.userService.updateModel(this.exportCypherModel, this.updateWorkspace).subscribe(
+                this.userService.updateModel(this.exportCypherModel).subscribe(
                     res => {
                         console.log(res);
                         this.showSuccess("Model başarıyla güncellendi!");

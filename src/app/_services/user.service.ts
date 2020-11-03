@@ -89,11 +89,11 @@ export class UserService {
         }
     }
 
-    updateModel(cypherQuery: any, workspace: any) {
+    updateModel(cypherQuery: any) {
         console.log("exportCypher fired");
         var user = JSON.parse(localStorage.getItem('currentUser'));
         if (user && user.token) {
-            return this.http.post(`${config.apiUrl}/users/updatemodel`, { "user": user, "cypherQuery": cypherQuery, "workspace": workspace });
+            return this.http.post(`${config.apiUrl}/users/updatemodel`, { "user": user, "cypherQuery": cypherQuery});
         }
         else {
             this.toastr.error("Giriş yapın!");
