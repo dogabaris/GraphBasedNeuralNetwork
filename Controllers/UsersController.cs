@@ -851,13 +851,7 @@ namespace WebApi.Controllers
 
         private HashSet<string> FindOrderedLayers(List<string> layers1, List<string> layers2, HashSet<string> ret)
         {
-            var counter = 0;
-            foreach (var layer in layers1)
-            {
-                if (layer == ret.Last())
-                    break;
-                counter++;
-            }
+            var counter = layers2.Count - 1;
 
             if (layers2.Count() > 0)
             {
@@ -935,7 +929,14 @@ namespace WebApi.Controllers
             {
                 for (int y = 0; y < yCount; y++)
                 {
-                    result[x, y] = nodes.First(n => n.x == x && n.y == y).data;
+                    try
+                    {
+                        result[x, y] = nodes.First(n => n.x == x && n.y == y).data;
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(ex);
+                    }
                 }
             }
             return result;
@@ -1010,16 +1011,17 @@ namespace WebApi.Controllers
                         var layers1 = new List<string>();
                         var layers2 = new List<string>();
                         var layers = new HashSet<string>();
+                        //var layers = new List<string>();
                         var cursor2 = session.Run(@"CALL apoc.nodes.group(['*'],['workspace']) YIELD nodes, relationships UNWIND nodes as node UNWIND relationships as rel WITH node, rel MATCH p=(node)-[rel]->() WHERE apoc.any.properties(node).workspace = '101' RETURN node, rel, nodes(p)[1]");
                         foreach (var record in cursor2)
                         {
                             layers1.Add(record[0].As<INode>().Labels?.FirstOrDefault());
                             layers2.Add(record[2].As<INode>().Labels?.FirstOrDefault());
                         }
-                        layers.Add(layers1.First());
-                        layers.Add(layers2.First());
-                        layers1.RemoveAt(0);
-                        layers2.RemoveAt(0);
+                        layers.Add(layers1.Last());
+                        layers.Add(layers2.Last());
+                        layers1.RemoveAt(layers1.Count - 1);
+                        layers2.RemoveAt(layers2.Count - 1);
                         layers = FindOrderedLayers(layers1, layers2, layers);
 
                         //layers.Remove(layers.First());
