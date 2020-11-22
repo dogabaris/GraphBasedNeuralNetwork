@@ -79,7 +79,10 @@ export class UserService {
     }
 
     testModel(selectedModel: any, nodeDatas: Array<number>, matrix: any) {
-        console.log("testModel fired", selectedModel, nodeDatas);
+      console.log("testModel fired", selectedModel, nodeDatas);
+      var d = new Date();
+      var n = d.toLocaleTimeString() + `.${d.getMilliseconds()}`;;
+      console.log(n);
         var user = JSON.parse(localStorage.getItem('currentUser'));
         if (user && user.token) {
             return this.http.post(`${config.apiUrl}/users/testmodel`, { "user": user, "workspace": selectedModel, "nodeDatas": nodeDatas, "matrix": matrix });

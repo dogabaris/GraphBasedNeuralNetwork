@@ -3,39 +3,39 @@
     <div class="jumbotron" style="background-color:white;">
 
         <ul class="nav nav-list bs-docs-sidenav affix form-inline well" style="z-index: 100;">
-            <li>Menü</li>
-            <li><a href="javascript:;" (click)="newModel()"><i class="icon-chevron-right"></i>Yeni Model Oluştur</a></li>
-            <li><a href="javascript:;" (click)="importH5Model()"><i class="icon-chevron-right"></i>H5 Modeli İçe Aktar</a></li>
-            <li><a href="javascript:;" (click)="importCnnH5Model()"><i class="icon-chevron-right"></i>H5 CNN Modeli İçe Aktar</a></li>
-            <li><a href="javascript:;" (click)="importMnistH5Model()"><i class="icon-chevron-right"></i>H5 MNIST Modeli İçe Aktar</a></li>
+            <li>Menu</li>
+            <li><a href="javascript:;" (click)="newModel()"><i class="icon-chevron-right"></i>Create New Model</a></li>
+            <li><a href="javascript:;" (click)="importH5Model()"><i class="icon-chevron-right"></i>Import H5 Model</a></li>
+            <li><a href="javascript:;" (click)="importCnnH5Model()"><i class="icon-chevron-right"></i>Import H5 CNN Model</a></li>
+            <li><a href="javascript:;" (click)="importMnistH5Model()"><i class="icon-chevron-right"></i>Import H5 MNIST Model</a></li>
             <li><!--<a href="javascript:;" (click)="exportH5Model()"><i class="icon-chevron-right"></i>H5 Modeli Export Et</a>--></li>
-            <li>Workspace Listesi</li>
+            <li>Workspace List</li>
             <li *ngFor="let workspace of workspaces; let i = index"><a href="javascript:;" (click)="getModel(workspace.name)"><i class="icon-chevron-right"></i> {{workspace.name}} </a></li>
-            <li><a [routerLink]="['/login']"><i class="icon-chevron-right"></i> Çıkış Yap</a></li>
+            <li><a [routerLink]="['/login']"><i class="icon-chevron-right"></i>Logout</a></li>
         </ul>
 
         <div class="tools form-inline well" id="tools">
-            <button class="btn" id="add_node_button"><i class="icon-plus"></i> Node Ekle</button>
-            <button class="btn" id="exportCypherButton">Cypher Sorgusu</button>
-            <button class="btn" id="exportMarkupButton">Markup Çıktısı Al</button>
+            <button class="btn" id="add_node_button"><i class="icon-plus"></i> Add Node</button>
+            <button class="btn" id="exportCypherButton">Cypher Query</button>
+            <button class="btn" id="exportMarkupButton">Markup</button>
             <a class="btn hide" id="downloadSvgButton" download="arrows.svg">Download SVG</a>
             <button class="btn hide" id="chooseStyleButton">Stil Seç</button>
-            <label for="internalScale" style="padding-left: 15px;">Ölçek</label>
+            <label for="internalScale" style="padding-left: 15px;">Scale</label>
             <input id="internalScale" type="range" min="0.1" max="5" value="1" step="0.01">
         </div>
 
         <div *ngIf="showTrainTools" class="tools form-inline well" id="train-tools">
-            <button class="btn pull-right" (click)="editModel();"><i class="icon-warning-sign"></i> Modeli Düzenle</button>
-            <button class="btn pull-right" (click)="deleteModel();"><i class="icon-warning-sign"></i> Modeli Sil</button>
-            <button class="btn pull-right" (click)="clearBigGraphFnc();"><i class="icon-warning-sign"></i> Modeli Temizle</button>
-            <button class="btn pull-right" (click)="showTransferModelPopUp();"><i class="icon-warning-sign"></i> Transfer Et</button>
-            <button *ngIf="showBigGraphEditor == true" class="btn" id="big_graph_button" (click)="stopBigGraphRenderFnc()"><i class="icon-stop"></i> Renderı Durdur</button>
-            <button *ngIf="showBigGraphEditor == true" class="btn" id="big_graph_button" (click)="toggleLabelsFnc()"><i class="icon-plus"></i> Verileri Göster</button>
-            <button *ngIf="showBigGraphEditor == false  && isPause == false" class="btn pull-right" (click)="cancelRefreshOfViewModel();"><i class="icon-stop"></i> Canlı Takibi Durdur</button>
-            <button *ngIf="showBigGraphEditor == false  && isPause == true" class="btn pull-right" (click)="startRefreshInterval();"><i class="icon-play"></i> Canlı Takibi Devam Ettir</button>
-            <button *ngIf="showBigGraphEditor == true" (click)="showGroupedGraph();" class="btn pull-right"><i class="icon-play"></i> Grupla</button>
-            <button class="btn pull-right" (click)="trainBinaryPerceptron();"><i class="icon-ok"></i> Eğit</button>
-            <button class="btn pull-right" (click)="testModelPopup();"><i class="icon-arrow-down"></i> Test Parametreleri Gir</button>
+            <button class="btn pull-right" (click)="editModel();"><i class="icon-warning-sign"></i> Edit Model</button>
+            <button class="btn pull-right" (click)="deleteModel();"><i class="icon-warning-sign"></i> Delete Model</button>
+            <button class="btn pull-right" (click)="clearBigGraphFnc();"><i class="icon-warning-sign"></i> Clear Model</button>
+            <button class="btn pull-right" (click)="showTransferModelPopUp();"><i class="icon-warning-sign"></i> Transfer</button>
+            <button *ngIf="showBigGraphEditor == true" class="btn" id="big_graph_button" (click)="stopBigGraphRenderFnc()"><i class="icon-stop"></i> Stop Render</button>
+            <button *ngIf="showBigGraphEditor == true" class="btn" id="big_graph_button" (click)="toggleLabelsFnc()"><i class="icon-plus"></i> Show Labels</button>
+            <button *ngIf="showBigGraphEditor == false  && isPause == false" class="btn pull-right" (click)="cancelRefreshOfViewModel();"><i class="icon-stop"></i> Stop Live Display</button>
+            <button *ngIf="showBigGraphEditor == false  && isPause == true" class="btn pull-right" (click)="startRefreshInterval();"><i class="icon-play"></i> Start Live Display</button>
+            <button *ngIf="showBigGraphEditor == true" (click)="showGroupedGraph();" class="btn pull-right"><i class="icon-play"></i> Group</button>
+            <button class="btn pull-right" (click)="trainBinaryPerceptron();"><i class="icon-ok"></i> Train</button>
+            <button class="btn pull-right" (click)="testModelPopup();"><i class="icon-arrow-down"></i> Test Parameters</button>
             <div class="form-group" *ngIf="openTestModel">
                 <input type="file"
                        id="file"
@@ -44,7 +44,7 @@
                 <input [(ngModel)]="testNode2" type="number" placeholder="2. Düğüm">
                 <input [(ngModel)]="testNode3" type="number" placeholder="3. Düğüm">
                 <br />
-                <button class="btn pull-right" (click)="testModel();"><i class="icon-pencil"></i> Test Et</button>
+                <button class="btn pull-right" (click)="testModel();"><i class="icon-pencil"></i> Predict</button>
             </div>
         </div>
 
@@ -109,22 +109,22 @@
         <div class="modal hide pop-up-editor node">
             <!--tabindex="-1"-->
             <div class="modal-header">
-                <h3>Düğüm Düzenle</h3>
+                <h3>Edit Node</h3>
             </div>
             <div class="top-right-btn-bar">
-                Tüm düğüm özelliklerine benzersiz bir 'workspace' tanımı yapılmalıdır.
-                <button class="btn btn-danger" id="edit_node_delete">Sil</button>
+                'workspace' property must be declared in every node.
+                <button class="btn btn-danger" id="edit_node_delete">Delete</button>
             </div>
             <div class="modal-body">
                 <div class="form-horizontal">
                     <div class="control-group">
-                        <label class="control-label" for="node_caption">Başlık</label>
+                        <label class="control-label" for="node_caption">Label</label>
                         <div class="controls">
                             <input id="node_caption" type="text" value="A">
                         </div>
                     </div>
                     <div class="control-group">
-                        <label class="control-label" for="node_properties">Özellikler</label>
+                        <label class="control-label" for="node_properties">Properties</label>
                         <div class="controls">
                             <textarea id="node_properties" rows="6"></textarea>
                         </div>
@@ -132,28 +132,28 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <a href="#" class="btn cancel">İptal</a>
-                <a href="#" class="btn btn-primary" id="edit_node_save">Kaydet</a>
+                <a href="#" class="btn cancel">Cancel</a>
+                <a href="#" class="btn btn-primary" id="edit_node_save">Save</a>
             </div>
         </div>
         <div class="modal hide pop-up-editor relationship" tabindex="-1">
             <div class="modal-header">
-                <h3>İlişki düzenle</h3>
+                <h3>Edit relationship</h3>
             </div>
             <div class="top-right-btn-bar">
-                <button class="btn" id="edit_relationship_reverse">Tersine Çevir</button>
-                <button class="btn btn-danger" id="edit_relationship_delete">Sil</button>
+                <button class="btn" id="edit_relationship_reverse">Reverse</button>
+                <button class="btn btn-danger" id="edit_relationship_delete">Delete</button>
             </div>
             <div class="modal-body">
                 <div class="form-horizontal">
                     <div class="control-group">
-                        <label class="control-label" for="relationship_type">Tip</label>
+                        <label class="control-label" for="relationship_type">Type</label>
                         <div class="controls">
                             <input id="relationship_type" type="text" value="R">
                         </div>
                     </div>
                     <div class="control-group">
-                        <label class="control-label" for="relationship_properties">Özellikler</label>
+                        <label class="control-label" for="relationship_properties">Properties</label>
                         <div class="controls">
                             <textarea id="relationship_properties" rows="6"></textarea>
                         </div>
@@ -161,23 +161,23 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <a href="#" class="btn cancel">İptal Et</a>
-                <a href="#" class="btn btn-primary" id="edit_relationship_save">Kaydet</a>
+                <a href="#" class="btn cancel">Cancel</a>
+                <a href="#" class="btn btn-primary" id="edit_relationship_save">Save</a>
             </div>
         </div>
         <div class="modal hide export-cypher" #exportCypherEl id="exportCypherEl">
             <div class="modal-header">
-                <h3>Cypher Çıktısı Al</h3>
+                <h3>Cypher Query</h3>
             </div>
             <div class="modal-body">
                 <textarea class="code" type="text" id="exportCypherTextId" style="width: -webkit-fill-available;" (input)="exportCypherModel = $event.target.value"
                           name="exportCypherModel" [(ngModel)]="exportCypherModel">{{exportCypherModel}}</textarea>
             </div>
             <div class="modal-footer">
-                <a href="#" class="btn cancel">Kapat</a>
-                <a href="#" target="_blank" class="btn" id="open_console">Konsolda Aç</a>
-                <a class="btn btn-primary" (click)="updateModel()">Model Güncelle</a>
-                <a class="btn btn-primary" (click)="createModel()">Model Oluştur</a>
+                <a href="#" class="btn cancel">Cancel</a>
+                <a href="#" target="_blank" class="btn" id="open_console">Console</a>
+                <a class="btn btn-primary" (click)="updateModel()">Update</a>
+                <a class="btn btn-primary" (click)="createModel()">Create</a>
             </div>
         </div>
 
