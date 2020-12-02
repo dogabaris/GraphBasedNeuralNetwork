@@ -913,7 +913,14 @@ namespace WebApi.Controllers
                 {
                     for (int k = 0; k < matrix1.GetLength(1); k++)
                     {
-                        result[i, j] += ReLuActivation(matrix1[i, k] * matrix2[k, j]);
+                        try
+                        {
+                            result[i, j] += ReLuActivation(matrix1[i, k] * matrix2[k, j]);
+                        }
+                        catch (Exception ex)
+                        {
+
+                        }
                     }
                 }
             }
@@ -1000,6 +1007,7 @@ namespace WebApi.Controllers
         [HttpPost("testmodel")]
         public async Task<IActionResult> TestModel([FromBody] TestModel testModel)
         {
+            var predictionRes = false;
             if (testModel.matrix != null && testModel.nodeDatas.Length == 0)
             {
 
@@ -1013,6 +1021,7 @@ namespace WebApi.Controllers
                         var layers = new HashSet<string>();
                         //var layers = new List<string>();
                         var cursor2 = session.Run(@"CALL apoc.nodes.group(['*'],['workspace']) YIELD nodes, relationships UNWIND nodes as node UNWIND relationships as rel WITH node, rel MATCH p=(node)-[rel]->() WHERE apoc.any.properties(node).workspace = '101' RETURN node, rel, nodes(p)[1]");
+                        layers.Add("input");
                         foreach (var record in cursor2)
                         {
                             layers1.Add(record[0].As<INode>().Labels?.FirstOrDefault());
@@ -1023,7 +1032,7 @@ namespace WebApi.Controllers
                         layers1.RemoveAt(layers1.Count - 1);
                         layers2.RemoveAt(layers2.Count - 1);
                         layers = FindOrderedLayers(layers1, layers2, layers);
-
+                        
                         //layers.Remove(layers.First());
                         // input kernel output bias output 
                         var iterator = 0;
@@ -1168,6 +1177,7 @@ namespace WebApi.Controllers
                                     if (iterator == records.Count - 1)
                                         res += float.Parse(rBias.ToString());
                                     res = Sigmoid((float)res);
+                                    predictionRes = res >= 0.5 ? true : false;
                                 }
                                 else if ((n2Data != null || nData != null || rKernel != null || rBias != null))
                                 {
@@ -1189,7 +1199,7 @@ namespace WebApi.Controllers
                 }
             }
 
-            return Ok();
+            return Ok(predictionRes);
         }
 
         [HttpPost("updatemodel")]
