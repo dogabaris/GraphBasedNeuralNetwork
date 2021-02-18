@@ -581,6 +581,8 @@ namespace WebApi.Controllers
                                 }
                         }
 
+                        cypherQuery += string.Format("(`{0}` :{1} {{ workspace: '101', data: {2} }}),", id, "output", 0);
+
                         long id2 = 0;
                         long cumulativeLayerIdCount = 0;
                         long extraLayer = 1;
@@ -628,7 +630,9 @@ namespace WebApi.Controllers
                                 }
                             }
                         }
+                        cypherQuery += string.Format("(`{0}`)-[:`related`]->(`{1}`),", id2, id2 + 1);
                     }
+
                     System.IO.File.WriteAllText(@"C:\Users\Public\MnistCypherQuery.txt", cypherQuery);
 
                     var response = string.Empty;
@@ -849,20 +853,27 @@ namespace WebApi.Controllers
             }
         }
 
-        private HashSet<string> FindOrderedLayers(List<string> layers1, List<string> layers2, HashSet<string> ret)
+        private HashSet<string> FindOrderedLayers(HashSet<KeyValuePair<string, string>> pair)
         {
-            var counter = layers2.Count - 1;
+            var firstRow = pair.First(x => x.Key == "input");
+            HashSet<string> returnList = new HashSet<string> { firstRow.Key, firstRow.Value};
+            var nextRowKey = firstRow.Value;
 
-            if (layers2.Count() > 0)
+            while (nextRowKey != "output")
             {
-                ret.Add(layers2.ElementAt(counter));
-                layers2.RemoveAt(counter);
-            }
-            else
-                return ret;
+                foreach (var row in pair)
+                {
+                    if (row.Key == nextRowKey)
+                    {
+                        returnList.Add(row.Key);
+                        returnList.Add(row.Value);
 
-            FindOrderedLayers(layers1, layers2, ret);
-            return ret;
+                        nextRowKey = row.Value;
+                    }
+                }
+            }
+
+            return returnList;
         }
 
         private double[,] ChangeXtoYMatrix(double[] matrix)
@@ -1016,22 +1027,14 @@ namespace WebApi.Controllers
                     try
                     {
                         var reversedInputMatrix = ChangeXtoYMatrix(testModel.matrix);
-                        var layers1 = new List<string>();
-                        var layers2 = new List<string>();
-                        var layers = new HashSet<string>();
-                        //var layers = new List<string>();
+                        var layersPair = new HashSet<KeyValuePair<string, string>>();
                         var cursor2 = session.Run(@"CALL apoc.nodes.group(['*'],['workspace']) YIELD nodes, relationships UNWIND nodes as node UNWIND relationships as rel WITH node, rel MATCH p=(node)-[rel]->() WHERE apoc.any.properties(node).workspace = '101' RETURN node, rel, nodes(p)[1]");
-                        layers.Add("input");
+                        var layers = new HashSet<string>();
                         foreach (var record in cursor2)
                         {
-                            layers1.Add(record[0].As<INode>().Labels?.FirstOrDefault());
-                            layers2.Add(record[2].As<INode>().Labels?.FirstOrDefault());
+                            layersPair.Add(new KeyValuePair<string, string>(record[0].As<INode>().Labels?.FirstOrDefault(), record[2].As<INode>().Labels?.FirstOrDefault()));
                         }
-                        layers.Add(layers1.Last());
-                        layers.Add(layers2.Last());
-                        layers1.RemoveAt(layers1.Count - 1);
-                        layers2.RemoveAt(layers2.Count - 1);
-                        layers = FindOrderedLayers(layers1, layers2, layers);
+                        layers = FindOrderedLayers(layersPair);
                         
                         //layers.Remove(layers.First());
                         // input kernel output bias output 
@@ -1053,20 +1056,23 @@ namespace WebApi.Controllers
                                 var cursorWrite = session.Run(@"MATCH(n:" + layer + " {workspace:'" + testModel.workspace + "'}) " +
                                                                     "set n.data = '" + JsonConvert.SerializeObject(tempMatrix) +
                                                                     "' return n");
+                            }
+                            else //hesap sırası
+                            {
                                 if (layer == layers.Last())
                                 {
                                     var output2 = SoftMax2(To1DArray(tempMatrix));
                                     var maxValue = output2.Min();
                                     var maxIndex = output2.ToList().IndexOf(maxValue);
+                                    session.Run("MATCH(n:output {workspace:'"+ testModel.workspace + "'}) SET n.data = " + maxIndex);
+
                                     return Ok(maxIndex);
                                 }
-                            }
-                            else //hesap sırası
-                            {
+
                                 var nextMatrix = TransformNodesToMatrix(nextNodes);
                                 double[,] outputMatrix;
 
-                                if (layer.Contains("bias") && !layer.Contains("output"))
+                                if (layer.Contains("bias") && !layer.Contains("middleoutput"))
                                 {
                                     var reversedBiasMatrix = ChangeXtoYMatrix(tempMatrix);
                                     outputMatrix = MatrixSum(reversedBiasMatrix, nextMatrix);
