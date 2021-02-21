@@ -737,6 +737,64 @@ namespace WebApi.Controllers
             return Ok(result);
         }
 
+        [HttpGet("convolutemodel")]
+        public async Task<IActionResult> ConvoluteModel(string model)
+        {
+            using (var session = _driver.Session())
+            {
+                try
+                {
+                    var cursor = session.Run(@"CALL apoc.nodes.group(['*'],['workspace']) YIELD nodes, relationships UNWIND nodes as node UNWIND relationships as rel WITH node, rel MATCH p=(node)-[rel]->() WHERE apoc.any.properties(node).workspace = '" + model + "' RETURN node, rel, nodes(p)[1]");
+                    var layers = new HashSet<string>();
+                    var layersPair = new HashSet<KeyValuePair<string, string>>();
+                    foreach (var record in cursor)
+                    {
+                        layersPair.Add(new KeyValuePair<string, string>(record[0].As<INode>().Labels?.FirstOrDefault(), record[2].As<INode>().Labels?.FirstOrDefault()));
+                    }
+                    layers = FindOrderedLayers(layersPair);
+
+                    var iterator = 0;
+                    var beforeMatrix = new double[,] { };
+                    var kernel = new double[,] { };
+                    var result = new double[,] { };
+                    foreach (var layer in layers)
+                    {
+                        var nextNode = new Entities.Neo4j.Node();
+
+                        var cursorRead = await session.RunAsync(@"MATCH(n:" + layer + ") " +
+                            "WHERE n.workspace = '" + model +
+                            "' RETURN n");
+
+                        nextNode = (await cursorRead.ToListAsync())
+                                                .Map<Node>().FirstOrDefault();
+                        if (iterator % 2 == 0) // okuma sırası
+                        {
+                            if (layer == layers.Last())
+                            {
+                                var cursorWrite = session.Run(@"MATCH(n:" + layer + " {workspace:'" + model + "'}) " +
+                                                                    "set n.data = '" + JsonConvert.SerializeObject(result) +
+                                                                    "' return n");
+                            }
+                            beforeMatrix = JsonConvert.DeserializeObject<double[,]>(nextNode.data);
+                        }
+                        else //hesap sırası
+                        {
+                            
+                            kernel = JsonConvert.DeserializeObject<double[,]>(nextNode.data);
+                            result = MatrixConvolute(beforeMatrix, kernel);
+                        }
+                        iterator++;
+                    }
+
+                    return Ok();
+                }
+                catch (Exception ex)
+                {
+                    return BadRequest(ex);
+                }
+            }
+        }
+
         [HttpGet("trainbinaryperceptron")]
         public async Task<IActionResult> TrainBinaryPerceptronAsync(string model)
         {
@@ -856,7 +914,7 @@ namespace WebApi.Controllers
         private HashSet<string> FindOrderedLayers(HashSet<KeyValuePair<string, string>> pair)
         {
             var firstRow = pair.First(x => x.Key == "input");
-            HashSet<string> returnList = new HashSet<string> { firstRow.Key, firstRow.Value};
+            HashSet<string> returnList = new HashSet<string> { firstRow.Key, firstRow.Value };
             var nextRowKey = firstRow.Value;
 
             while (nextRowKey != "output")
@@ -1015,6 +1073,57 @@ namespace WebApi.Controllers
             return result;
         }
 
+        private double[,] MatrixConvolute(double[,] matrixToConvolute, double[,] kernel)
+        {
+            var lengthI = 0;
+            var lengthJ = 0;
+
+            if (matrixToConvolute.GetLength(0) - kernel.GetLength(0) == 1)
+            {
+                lengthI += 2;
+            }
+            else
+            {
+                lengthI += (matrixToConvolute.GetLength(0) - kernel.GetLength(0)) + 1;
+            }
+            if (matrixToConvolute.GetLength(1) - kernel.GetLength(1) == 1)
+            {
+                lengthJ += 2;
+            }
+            else
+            {
+                lengthJ += (matrixToConvolute.GetLength(1) - kernel.GetLength(1)) + 1;
+            }
+
+            double[,] result = new double[lengthI, lengthJ];
+            for (int i = 0; i < result.GetLength(0); i++)
+            {
+                for (int j = 0; j < result.GetLength(1); j++)
+                {
+                    result[i, j] = 0;
+                }
+            }
+
+            for (int i = 0; i < matrixToConvolute.GetLength(0) - kernel.GetLength(0) + 1; i++)
+            {
+                for (int j = 0; j < matrixToConvolute.GetLength(1) - kernel.GetLength(1) + 1; j++)
+                {
+                    int startA = i;
+                    int startB = j;
+                    int r = kernel.GetLength(0);
+                    int s = kernel.GetLength(1);
+                    for (int a = i; a < startA + r; a++)
+                    {
+                        for (int b = j; b < startB + s; b++)
+                        {
+                            result[i, j] += matrixToConvolute[a, b] * kernel[a - startA, b - startB];
+                        }
+                    }
+                }
+            }
+            return result;
+        }
+
         [HttpPost("testmodel")]
         public async Task<IActionResult> TestModel([FromBody] TestModel testModel)
         {
@@ -1035,7 +1144,7 @@ namespace WebApi.Controllers
                             layersPair.Add(new KeyValuePair<string, string>(record[0].As<INode>().Labels?.FirstOrDefault(), record[2].As<INode>().Labels?.FirstOrDefault()));
                         }
                         layers = FindOrderedLayers(layersPair);
-                        
+
                         //layers.Remove(layers.First());
                         // input kernel output bias output 
                         var iterator = 0;
@@ -1064,7 +1173,7 @@ namespace WebApi.Controllers
                                     var output2 = SoftMax2(To1DArray(tempMatrix));
                                     var maxValue = output2.Min();
                                     var maxIndex = output2.ToList().IndexOf(maxValue);
-                                    session.Run("MATCH(n:output {workspace:'"+ testModel.workspace + "'}) SET n.data = " + maxIndex);
+                                    session.Run("MATCH(n:output {workspace:'" + testModel.workspace + "'}) SET n.data = " + maxIndex);
 
                                     return Ok(maxIndex);
                                 }
@@ -1217,10 +1326,10 @@ namespace WebApi.Controllers
             {
                 using (var session = _driver.Session())
                 {
-                    try 
+                    try
                     {
                         var workspace = Regex.Match(updateModel.cypherQuery, "(?<=workspace:')(.*?)(?=\')")?.Value ?? "";
-                        
+
                         string delCypherQuery = string.Format("match(n) where n.workspace = '{0}' detach delete n", workspace);
 
                         try

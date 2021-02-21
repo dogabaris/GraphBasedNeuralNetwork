@@ -446,6 +446,17 @@ export class HomeComponent implements OnInit {
             });
     }
 
+    convoluteModel() {
+      this.userService.convoluteModel(this.selectedModel).pipe(first()).subscribe(result => {
+        console.log(result);
+        this.showSuccess("Modelde evrişim başarılı!");
+      },
+        err => {
+          console.log("Error occured!");
+          this.showError("Model eğitiminde sorun oluştu!");
+        });
+    }
+
     trainBinaryPerceptron() {
         this.userService.trainBinaryPerceptron(this.selectedModel).pipe(first()).subscribe(result => {
             console.log(result);
@@ -528,7 +539,7 @@ export class HomeComponent implements OnInit {
                 }
             },
 
-            initial_cypher: "match (n)-[r:related]->(e)  where(n.workspace = '" + modelName + "') return n,r,e",
+            initial_cypher: "match (n)-[r]->(e)  where(n.workspace = '" + modelName + "') return n,r,e",
             //"start n=node(*), r=relationship(*) match(n) where(n.workspace = '" + modelName + "') return n,r",
             arrows: true,
             hierarchical: true,

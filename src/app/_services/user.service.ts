@@ -10,6 +10,11 @@ import { Workspace } from '../_models/workspace';
 
 @Injectable({ providedIn: 'root' })
 export class UserService {
+    convoluteModel(workspace: any) {
+      var user = JSON.parse(localStorage.getItem('currentUser'));
+      let params = new HttpParams().set("model", workspace);
+      return this.http.get<Workspace[]>(`${config.apiUrl}/users/convolutemodel`, { params: params });
+    }
 
     constructor(private http: HttpClient, private toastr: ToastrService) { }
 
