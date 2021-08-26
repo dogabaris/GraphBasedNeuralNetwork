@@ -1,5 +1,11 @@
 # Graph Based Neural Network Module
 
+### Related Article:
+https://dergipark.org.tr/tr/pub/jarnas/issue/60593/890552
+
+### İlgili Tez:
+https://tez.yok.gov.tr/UlusalTezMerkezi/tezDetay.jsp?id=LVwBX_SlCM4HtgdYZAQG2w&no=OKF_mNC5C2z2Kckp986CYQ
+
 ### Projeyi Çalıştırmak İçin
 
 Proje 4 bileşen içermektedir. Bunlar neo4j, backend, frontend, sql bileşenleridir. Projenin düzgün çalışabilmesi için bu 4 bileşenin de çalışması gereklidir.
